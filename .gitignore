@@ -31,3 +31,14 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Project binaries and generated local artifacts
+bin/
+coverage.out
+web/node_modules/
+web/.nuxt/
+web/.output/
+.dagger-deps/
+
+# Keep committed Dagger SDK bindings and webui/dist (do not ignore them)
+.opencode/
