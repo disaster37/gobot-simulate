@@ -46,7 +46,7 @@ func setupDFP(sim *simulate.Simulator) {
 	board := sim.Adaptor("dfp",
 		simulate.WithAdaptorName("fat"),
 		simulate.WithPlatform("raspberry-pi"),
-		simulate.WithInvertedInitialPins("10", "12"),
+		simulate.WithInvertedInitialPins("10", "19"),
 		simulate.WithInputPullup("11", "13", "15", "16", "18", "22", "10", "12", "19", "21"),
 	)
 
