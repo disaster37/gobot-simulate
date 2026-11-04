@@ -3,8 +3,9 @@ package server
 import (
 	"context"
 	"crypto/subtle"
-	"fmt"
+	"log"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -20,7 +21,11 @@ const (
 func (s *Server) recoveryMiddleware(ctx context.Context, c *app.RequestContext) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
-			writeError(c, "", http.StatusInternalServerError, "INTERNAL", fmt.Sprintf("panic: %v", recovered))
+			// Log the panic and stack server-side; never echo the raw panic
+			// value to the client (it may contain internal paths or data).
+			log.Printf("panic recovered while serving %s %s: %v\n%s",
+				c.Method(), c.Path(), recovered, debug.Stack())
+			writeError(c, "", http.StatusInternalServerError, "INTERNAL", "internal server error")
 			c.Abort()
 		}
 	}()
