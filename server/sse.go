@@ -15,12 +15,21 @@ import (
 const sseHeartbeatInterval = 15 * time.Second
 
 func (s *Server) handleEvents(ctx context.Context, c *app.RequestContext) {
-	if s.cfg.MaxClients > 0 && s.clients.Load() >= int64(s.cfg.MaxClients) {
-		writeBackendError(c, "", state.ErrClientCap)
-		return
+	// Atomically reserve a client slot so concurrent connections cannot exceed
+	// MaxClients (check-then-act on a shared counter would race).
+	if s.cfg.MaxClients > 0 {
+		for {
+			cur := s.clients.Load()
+			if cur >= int64(s.cfg.MaxClients) {
+				writeBackendError(c, "", state.ErrClientCap)
+				return
+			}
+			if s.clients.CompareAndSwap(cur, cur+1) {
+				break
+			}
+		}
+		defer s.clients.Add(-1)
 	}
-	s.clients.Add(1)
-	defer s.clients.Add(-1)
 
 	lastID := parseEventID(string(c.GetHeader("Last-Event-ID")))
 	if lastID == 0 {
