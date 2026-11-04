@@ -1,0 +1,1 @@
+import{F as e}from"./Cp7v36Fx.js";function t(t=e()){let n=t;n&&!n.sp&&(n.sp=[])}export{t};
