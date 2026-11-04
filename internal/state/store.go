@@ -380,6 +380,9 @@ func (b *Board) DigitalWritePin(pin string, val byte, setMode bool, mode PinMode
 }
 
 // SetDigitalValue updates a digital value while preserving the pin mode.
+// val is truncated to a byte on write; callers should pass 0 or 1. This
+// mirrors the legacy gobot-fat mock, which stores raw ints but is only ever
+// exercised with 0/1 by its consumers.
 func (b *Board) SetDigitalValue(pin string, val int, source EventSource) PinState {
 	//nolint:gosec // digital values are 0/1 at every untrusted boundary
 	return b.DigitalWritePin(pin, byte(val), false, PinModeInput, source)

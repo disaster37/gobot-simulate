@@ -38,9 +38,12 @@ func (m *GobotSimulate) Lint(ctx context.Context) (string, error) {
 	return dag.Golang(m.Src).Lint(ctx)
 }
 
-// Vulncheck runs the latest govulncheck inside the pinned golang module
-// container. The remote module pins govulncheck v1.1.4, whose x/tools version
-// panics while analysing Go 1.27 syntax.
+// Vulncheck runs govulncheck inside the pinned golang module container.
+//
+// TODO(reproducibility): pin the govulncheck version instead of @latest. The
+// remote golang module pins govulncheck v1.1.4, whose bundled x/tools version
+// panics while analysing Go 1.27 syntax; @latest is a stopgap until a
+// known-good Go 1.27-compatible release can be pinned here.
 func (m *GobotSimulate) Vulncheck(ctx context.Context) (string, error) {
 	return dag.Golang(m.Src).
 		Container().

@@ -340,7 +340,9 @@ func (s *Simulator) Values(boardID string) (map[string]ExtraValue, error) {
 	return s.store.Values(boardID)
 }
 
-// SetDigital sets a digital pin value.
+// SetDigital sets a digital pin value. Values are truncated to a byte when
+// stored; callers should pass 0 or 1. (The HTTP layer validates 0/1; this is
+// a low-level mutation API.)
 func (s *Simulator) SetDigital(boardID, pin string, val int, source EventSource) error {
 	if err := state.ValidateIdentifier("pin", pin); err != nil {
 		return err

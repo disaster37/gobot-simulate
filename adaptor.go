@@ -335,6 +335,7 @@ func (a *Adaptor) GetDigitalPinState(pin string) int {
 }
 
 // SetDigitalPinState sets a pin digital value and emits update events.
+// value is truncated to a byte; gobot-fat only passes 0 or 1.
 func (a *Adaptor) SetDigitalPinState(pin string, value int) {
 	a.board.SetDigitalValue(pin, value, state.SourceSimulation)
 }
