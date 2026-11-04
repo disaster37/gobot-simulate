@@ -371,7 +371,7 @@ func TestSimulatorMutationAPI(t *testing.T) {
 	assert.False(t, state.Fault.Active)
 
 	assert.Greater(t, sim.CurrentSeq(), uint64(0))
-	assert.Equal(t, simulateVersion(), sim.Version())
+	assert.Equal(t, Version, sim.Version())
 	assert.GreaterOrEqual(t, sim.Uptime(), time.Duration(0))
 	assert.Equal(t, 0, sim.ClientCount())
 	assert.Equal(t, uint64(0), sim.DroppedEvents())
@@ -395,8 +395,6 @@ func TestSimulatorEventSubscription(t *testing.T) {
 		t.Fatal("expected an event")
 	}
 }
-
-func simulateVersion() string { return Version }
 
 func TestSimulatorLifecycleAndOptions(t *testing.T) {
 	sim := New(
