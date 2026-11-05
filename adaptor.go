@@ -1,6 +1,7 @@
 package simulate
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -335,9 +336,21 @@ func (a *Adaptor) GetDigitalPinState(pin string) int {
 }
 
 // SetDigitalPinState sets a pin digital value and emits update events.
-// value is truncated to a byte; gobot-fat only passes 0 or 1.
+// It preserves the legacy no-error signature; values outside 0..255 are
+// ignored. Use SetDigitalPinStateErr to observe ErrInvalidValue.
 func (a *Adaptor) SetDigitalPinState(pin string, value int) {
+	_ = a.SetDigitalPinStateErr(pin, value)
+}
+
+// SetDigitalPinStateErr validates and sets a pin digital value. Values must be
+// in 0..255: 0 and 1 keep their classic digital meaning, while larger byte
+// values are accepted for PWM-like writes.
+func (a *Adaptor) SetDigitalPinStateErr(pin string, value int) error {
+	if value < 0 || value > 255 {
+		return fmt.Errorf("%w: digital value %d must be between 0 and 255", state.ErrInvalidValue, value)
+	}
 	a.board.SetDigitalValue(pin, value, state.SourceSimulation)
+	return nil
 }
 
 // GetValueReadState returns a stored extra value.

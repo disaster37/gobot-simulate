@@ -306,7 +306,7 @@ func (s *Server) handlePin(_ context.Context, c *app.RequestContext) {
 		applied = true
 	}
 	if req.DigitalValue != nil {
-		if *req.DigitalValue != 0 && *req.DigitalValue != 1 {
+		if *req.DigitalValue < 0 || *req.DigitalValue > 255 {
 			writeBackendError(c, boardID, state.ErrInvalidValue)
 			return
 		}

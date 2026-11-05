@@ -142,6 +142,39 @@ func TestStoreSetDigitalAndFunctionCode(t *testing.T) {
 	assert.Equal(t, 3, state.Functions["ack"].ReturnCode)
 }
 
+func TestStoreSetDigitalValueRange(t *testing.T) {
+	store := newTestStore()
+	_, err := store.RegisterBoard("dfp", "fat", "", "", 0)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name    string
+		value   int
+		wantErr bool
+	}{
+		{name: "negative", value: -1, wantErr: true},
+		{name: "zero", value: 0},
+		{name: "one", value: 1},
+		{name: "max byte", value: 255},
+		{name: "overflow byte", value: 256, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := store.SetDigital("dfp", "3", tt.value, SourceUI)
+			if tt.wantErr {
+				assert.ErrorIs(t, err, ErrInvalidValue)
+				return
+			}
+			require.NoError(t, err)
+			pin, err := store.Pin("dfp", "3")
+			require.NoError(t, err)
+			assert.Equal(t, tt.value, pin.DigitalValue)
+			//nolint:gosec // test values are validated into 0..255
+			assert.Equal(t, byte(tt.value), pin.ByteValue)
+		})
+	}
+}
+
 func TestStoreInvertAfterPullup(t *testing.T) {
 	store := newTestStore()
 	board, err := store.RegisterBoard("dfp", "fat", "", "", 0)

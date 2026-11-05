@@ -98,7 +98,7 @@ func TestPressReleaseErrorBranches(t *testing.T) {
 func TestHandlePinErrorBranches(t *testing.T) {
 	sim := setupRichBoard(t)
 
-	badDigital := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/pins/3", []byte(`{"digitalValue":2}`))
+	badDigital := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/pins/3", []byte(`{"digitalValue":256}`))
 	assert.Equal(t, http.StatusBadRequest, badDigital.Code)
 	assert.Contains(t, badDigital.Body.String(), "INVALID_VALUE")
 

@@ -380,11 +380,10 @@ func (b *Board) DigitalWritePin(pin string, val byte, setMode bool, mode PinMode
 }
 
 // SetDigitalValue updates a digital value while preserving the pin mode.
-// val is truncated to a byte on write; callers should pass 0 or 1. This
-// mirrors the legacy gobot-fat mock, which stores raw ints but is only ever
-// exercised with 0/1 by its consumers.
+// Callers at untrusted boundaries must validate 0..255; this low-level method
+// mirrors the legacy gobot-fat mock, which stores the byte representation.
 func (b *Board) SetDigitalValue(pin string, val int, source EventSource) PinState {
-	//nolint:gosec // digital values are 0/1 at every untrusted boundary
+	//nolint:gosec // validated to 0..255 at the public and store boundaries
 	return b.DigitalWritePin(pin, byte(val), false, PinModeInput, source)
 }
 
@@ -1018,8 +1017,13 @@ func (s *Store) Values(boardID string) (map[string]ExtraValue, error) {
 	return b.Values(), nil
 }
 
-// SetDigital sets a pin digital value preserving its mode.
+// SetDigital sets a pin digital value preserving its mode. Values must be in
+// 0..255; 0 and 1 keep their classic digital meaning, while larger byte values
+// are accepted for PWM-like writes.
 func (s *Store) SetDigital(boardID, pin string, val int, source EventSource) error {
+	if val < 0 || val > 255 {
+		return fmt.Errorf("%w: digital value %d must be between 0 and 255", ErrInvalidValue, val)
+	}
 	b, err := s.Resolve(boardID)
 	if err != nil {
 		return err

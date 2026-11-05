@@ -58,6 +58,69 @@ func TestSimulatorMutationAPIWithValidation(t *testing.T) {
 	assert.ErrorIs(t, sim.BindPin("dfp", "bad pin", "", PinModeOutput), ErrInvalidID)
 }
 
+func TestSetDigitalValueRange(t *testing.T) {
+	sim := New()
+	sim.Adaptor("dfp")
+
+	tests := []struct {
+		name    string
+		value   int
+		wantErr bool
+	}{
+		{name: "negative", value: -1, wantErr: true},
+		{name: "digital low", value: 0},
+		{name: "digital high", value: 1},
+		{name: "max byte", value: 255},
+		{name: "overflow byte", value: 256, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := sim.SetDigital("dfp", "3", tt.value, SourceUI)
+			if tt.wantErr {
+				assert.ErrorIs(t, err, ErrInvalidValue)
+				return
+			}
+			require.NoError(t, err)
+			pin, err := sim.Pin("dfp", "3")
+			require.NoError(t, err)
+			assert.Equal(t, tt.value, pin.DigitalValue)
+			//nolint:gosec // test values are validated into 0..255
+			assert.Equal(t, byte(tt.value), pin.ByteValue)
+		})
+	}
+}
+
+func TestAdaptorSetDigitalPinStateRange(t *testing.T) {
+	board := NewMockPlateform()
+
+	tests := []struct {
+		name    string
+		value   int
+		wantErr bool
+	}{
+		{name: "negative", value: -1, wantErr: true},
+		{name: "zero", value: 0},
+		{name: "one", value: 1},
+		{name: "max byte", value: 255},
+		{name: "overflow byte", value: 256, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := board.SetDigitalPinStateErr("3", tt.value)
+			if tt.wantErr {
+				assert.ErrorIs(t, err, ErrInvalidValue)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.value, board.GetDigitalPinState("3"))
+		})
+	}
+
+	// The legacy no-error method ignores invalid values instead of truncating.
+	board.SetDigitalPinState("3", 256)
+	assert.NotEqual(t, 0, board.GetDigitalPinState("3"))
+}
+
 func TestSimulatorSubscribeWithReplay(t *testing.T) {
 	sim := New()
 	board := sim.Adaptor("dfp")

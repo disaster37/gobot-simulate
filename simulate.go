@@ -3,6 +3,7 @@ package simulate
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -340,12 +341,15 @@ func (s *Simulator) Values(boardID string) (map[string]ExtraValue, error) {
 	return s.store.Values(boardID)
 }
 
-// SetDigital sets a digital pin value. Values are truncated to a byte when
-// stored; callers should pass 0 or 1. (The HTTP layer validates 0/1; this is
-// a low-level mutation API.)
+// SetDigital sets a digital pin value. Values must be in 0..255: 0 and 1 keep
+// their classic digital meaning, while larger byte values are accepted for
+// compatibility with PWM-like writes.
 func (s *Simulator) SetDigital(boardID, pin string, val int, source EventSource) error {
 	if err := state.ValidateIdentifier("pin", pin); err != nil {
 		return err
+	}
+	if val < 0 || val > 255 {
+		return fmt.Errorf("%w: digital value %d must be between 0 and 255", ErrInvalidValue, val)
 	}
 	return s.store.SetDigital(boardID, pin, val, source)
 }
