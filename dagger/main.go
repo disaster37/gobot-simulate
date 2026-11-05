@@ -28,6 +28,7 @@ func (m *GobotSimulate) Functions(_ context.Context) ([]string, error) {
 		"vulncheck",
 		"web-build",
 		"web-test",
+		"web-e2e",
 		"build",
 		"dev",
 	}, nil
@@ -39,15 +40,11 @@ func (m *GobotSimulate) Lint(ctx context.Context) (string, error) {
 }
 
 // Vulncheck runs govulncheck inside the pinned golang module container.
-//
-// TODO(reproducibility): pin the govulncheck version instead of @latest. The
-// remote golang module pins govulncheck v1.1.4, whose bundled x/tools version
-// panics while analysing Go 1.27 syntax; @latest is a stopgap until a
-// known-good Go 1.27-compatible release can be pinned here.
+// govulncheck is pinned to v1.9.0 for reproducible scans and Go 1.27 support.
 func (m *GobotSimulate) Vulncheck(ctx context.Context) (string, error) {
 	return dag.Golang(m.Src).
 		Container().
-		WithExec([]string{"go", "install", "golang.org/x/vuln/cmd/govulncheck@latest"}).
+		WithExec([]string{"go", "install", "golang.org/x/vuln/cmd/govulncheck@v1.9.0"}).
 		WithExec([]string{"sh", "-c", "$(go env GOPATH)/bin/govulncheck ./..."}).
 		Stdout(ctx)
 }
@@ -77,6 +74,43 @@ func (m *GobotSimulate) WebTest(ctx context.Context) (string, error) {
 		WithMountedCache("/root/.npm", dag.CacheVolume("npm-cache-node22")).
 		WithExec([]string{"npm", "ci"}).
 		WithExec([]string{"npm", "run", "test:unit"}).
+		Stdout(ctx)
+}
+
+// WebE2E runs the Playwright E2E suite against a freshly built simulator.
+// It is an optional gate and is intentionally not part of Ci to keep CI fast.
+//
+// Dagger's kebab-case conversion splits the acronym/digit run, so the callable
+// CLI name is `web-e-2-e` (exposed as `make e2e`).
+func (m *GobotSimulate) WebE2E(ctx context.Context) (string, error) {
+	webDist, err := m.WebBuild(ctx)
+	if err != nil {
+		return "", err
+	}
+	src := m.Src.WithDirectory(WebDistTarget, webDist)
+	binary := m.buildBinary(src).File(BinaryName)
+
+	simulator := dag.Golang(src).
+		Container().
+		WithFile("/usr/local/bin/"+BinaryName, binary).
+		WithExposedPort(8080).
+		AsService(dagger.ContainerAsServiceOpts{
+			Args: []string{"/usr/local/bin/" + BinaryName, "--addr", "0.0.0.0", "--port", "8080"},
+		})
+
+	webDir := m.Src.Directory(WebSourceDir)
+	return dag.Container().
+		From(PlaywrightImage).
+		WithServiceBinding("simulator", simulator).
+		WithDirectory("/src", webDir).
+		WithWorkdir("/src").
+		WithMountedCache("/root/.npm", dag.CacheVolume("npm-cache-playwright")).
+		WithEnvVariable("CI", "1").
+		WithEnvVariable("PLAYWRIGHT_BASE_URL", "http://simulator:8080").
+		WithExec([]string{"npm", "ci"}).
+		// Wait for the simulator service to accept requests before Playwright starts.
+		WithExec([]string{"sh", "-c", `for i in $(seq 1 60); do node -e "fetch('http://simulator:8080/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))" && exit 0; sleep 1; done; exit 1`}).
+		WithExec([]string{"npx", "playwright", "test"}).
 		Stdout(ctx)
 }
 

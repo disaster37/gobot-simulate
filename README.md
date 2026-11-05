@@ -38,7 +38,7 @@ npm --prefix web run dev        # Nuxt HMR on :3000, proxying /api/v1 to :8080
 | `web/` | Nuxt 4 + Nuxt UI 4 + Tailwind 4 source and Vitest tests |
 | `cmd/gobot-simulate` | Standalone demo binary |
 | `examples/gobot-fat-demo` | Runnable `gobot-fat`-shaped DFP/TFP/tank example |
-| `dagger/` | Thin local Dagger module (`ci`, `lint`, `test`, `test-race`, `vulncheck`, `web-build`, `web-test`, `build`, `dev`) |
+| `dagger/` | Thin local Dagger module (`ci`, `lint`, `test`, `test-race`, `vulncheck`, `web-build`, `web-test`, `web-e2e`, `build`, `dev`) |
 | `daggerverse/web` | Vendored node/Nuxt static builder used by the Dagger module |
 
 ### Concurrency model
@@ -154,7 +154,7 @@ Board/device/pin/value/function identifiers are restricted to `^[a-zA-Z0-9_.:-]{
 - Reconnect with `Last-Event-ID` (header) or `?lastEventId=`; events are replayed from the ring buffer, otherwise a fresh `event: snapshot` frame is sent.
 - Heartbeat every 15s: `event: heartbeat\ndata: {"timestamp":"..."}`.
 - At most `SIMULATE_MAX_CLIENTS` streams; excess requests get `429 TOO_MANY_CLIENTS`.
-- With an auth token, `/events` accepts `?token=<token>` as well as `Authorization: Bearer`.
+- With an auth token, `/events` requires `Authorization: Bearer <token>`. Tokens are never accepted in the query string (they would leak into URLs and logs); the web UI sends the header from its fetch-based SSE client.
 
 ## Dagger pipeline
 
@@ -162,23 +162,24 @@ Root `dagger.json` pins engine `v0.21.8` and the `golang` Daggerverse module. Th
 
 ```bash
 dagger develop
-dagger call -m . functions       # lists build/ci/dev/lint/src/test/test-race/vulncheck/web-build/web-test
+dagger call -m . functions       # lists build/ci/dev/lint/test/test-race/vulncheck/web-build/web-test/web-e2e
 dagger call -m . lint
 dagger call -m . test-race
 dagger call -m . web-build export --path ./webui/dist
 dagger call -m . build export --path ./bin
 dagger call -m . ci export --path .
+make e2e                         # optional Playwright E2E gate (dagger call -m . web-e-2-e)
 ```
 
-`make ci` runs the Dagger CI pipeline, checks `webui/dist/index.html`, then `make verify-web-dist` (`git status --porcelain -- webui/dist`). `webui/dist` and generated Dagger bindings are committed.
+`make ci` runs the Dagger CI pipeline, checks `webui/dist/index.html`, then `make verify-web-dist` (`git status --porcelain -- webui/dist`). `webui/dist` and generated Dagger bindings are committed. `make e2e` runs Playwright in the pinned `mcr.microsoft.com/playwright` image against a freshly built simulator; it is intentionally excluded from `ci` to keep CI fast. Dagger's kebab-case conversion splits digit runs, so the Go method `WebE2E` is invoked as `dagger call -m . web-e-2-e` (the Makefile hides this detail). `govulncheck` is pinned to `golang.org/x/vuln/cmd/govulncheck@v1.9.0` for reproducible scans.
 
 ## Security
 
 - No `unsafe`; no reflection on unexported fields.
 - Static assets are served from the embedded FS with path-traversal rejection; `/api/*` never falls back to `index.html`.
-- Optional bearer auth is compared with `crypto/subtle`; tokens are never logged.
+- Optional bearer auth is compared with `crypto/subtle`; tokens are never logged. REST and SSE authenticate with `Authorization: Bearer <token>` only.
 - CORS is allowlist-based.
-- Security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and a self-hosted CSP.
+- Security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and a self-hosted CSP. `script-src` is `'self'` plus SHA-256 hashes of inline scripts in the embedded `index.html` (the Nuxt import map), so `script-src 'unsafe-inline'` is never emitted. Vue/Tailwind runtime styles still use `style-src 'self' 'unsafe-inline'`.
 - Panic recovery returns the standard JSON error envelope.
 - No outbound network calls from the simulator itself (SSRF-free).
 
@@ -188,6 +189,7 @@ dagger call -m . ci export --path .
 go test -count=1 ./...
 go test -race -count=1 ./...
 cd web && npm ci && npm run test:unit && npm run build
+make e2e                        # optional: Playwright via Dagger
 ```
 
 Coverage includes legacy `MockPlateform` interface assertions, pull-up/inverted semantics, fault propagation, re-entrant test hooks, concurrent store access, Hertz REST endpoints, SSE replay/`Last-Event-ID`, client caps, CORS/auth/body limits, static SPA fallback, and Vitest composable reducer/optimistic-rollback tests.
