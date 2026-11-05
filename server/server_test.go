@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -266,7 +265,11 @@ func TestSecurityHeaders(t *testing.T) {
 	assert.Equal(t, "nosniff", headers.Get("X-Content-Type-Options"))
 	assert.Equal(t, "SAMEORIGIN", headers.Get("X-Frame-Options"))
 	assert.Equal(t, "strict-origin-when-cross-origin", headers.Get("Referrer-Policy"))
-	assert.True(t, strings.Contains(headers.Get("Content-Security-Policy"), "default-src 'self'"))
+	csp := headers.Get("Content-Security-Policy")
+	assert.Contains(t, csp, "default-src 'self'")
+	assert.Contains(t, csp, "script-src 'self' 'sha256-")
+	assert.NotContains(t, csp, "script-src 'self' 'unsafe-inline'")
+	assert.Contains(t, csp, "style-src 'self' 'unsafe-inline'")
 }
 
 func TestRESTDeviceAndPinVariants(t *testing.T) {
@@ -307,6 +310,13 @@ func TestRESTDeviceAndPinVariants(t *testing.T) {
 
 	pinByte := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/pins/5", []byte(`{"byteValue":12}`))
 	require.Equal(t, http.StatusOK, pinByte.Code, pinByte.Body.String())
+
+	pinDigitalMax := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/pins/3", []byte(`{"digitalValue":255}`))
+	require.Equal(t, http.StatusOK, pinDigitalMax.Code, pinDigitalMax.Body.String())
+
+	pinDigitalOverflow := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/pins/3", []byte(`{"digitalValue":256}`))
+	assert.Equal(t, http.StatusBadRequest, pinDigitalOverflow.Code)
+	assert.Contains(t, pinDigitalOverflow.Body.String(), `"INVALID_VALUE"`)
 
 	pinAnalog := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/pins/A0", []byte(`{"analogValue":512,"mode":"analog"}`))
 	require.Equal(t, http.StatusOK, pinAnalog.Code, pinAnalog.Body.String())

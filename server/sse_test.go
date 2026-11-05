@@ -163,7 +163,7 @@ func TestSSEMaxClients(t *testing.T) {
 	assert.Equal(t, "TOO_MANY_CLIENTS", errorPayload["code"])
 }
 
-func TestSSEQueryToken(t *testing.T) {
+func TestSSEAuthHeaderOnly(t *testing.T) {
 	sim := newServerSim(t, simulate.WithAuthToken("secret"))
 	populateBoard(t, sim)
 
@@ -172,7 +172,14 @@ func TestSSEQueryToken(t *testing.T) {
 	_ = unauthorized.Body.Close()
 	assert.Equal(t, http.StatusUnauthorized, unauthorized.StatusCode)
 
-	response, cancel := openSSE(t, sim.URL()+"/api/v1/events?token=secret", nil)
+	queryToken, err := httpGet(t, sim.URL()+"/api/v1/events?token=secret")
+	require.NoError(t, err)
+	_ = queryToken.Body.Close()
+	assert.Equal(t, http.StatusUnauthorized, queryToken.StatusCode)
+
+	response, cancel := openSSE(t, sim.URL()+"/api/v1/events", map[string]string{
+		"Authorization": "Bearer secret",
+	})
 	defer cancel()
 	defer func() { _ = response.Body.Close() }()
 	scanner := bufio.NewScanner(response.Body)

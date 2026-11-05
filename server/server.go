@@ -67,8 +67,9 @@ type Config struct {
 
 // Server wraps a Hertz engine and its lifecycle.
 type Server struct {
-	backend Backend
-	cfg     Config
+	backend               Backend
+	cfg                   Config
+	contentSecurityPolicy string
 
 	mu       sync.Mutex
 	h        *Hertz
@@ -92,7 +93,12 @@ func New(backend Backend, cfg Config) (*Server, error) {
 	if cfg.Addr == "" {
 		cfg.Addr = "127.0.0.1"
 	}
-	return &Server{backend: backend, cfg: cfg, stopCh: make(chan struct{})}, nil
+	return &Server{
+		backend:               backend,
+		cfg:                   cfg,
+		contentSecurityPolicy: buildContentSecurityPolicy(cfg.Assets),
+		stopCh:                make(chan struct{}),
+	}, nil
 }
 
 // Start binds the listener and starts the Hertz engine without blocking.

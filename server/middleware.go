@@ -2,9 +2,13 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/base64"
+	"io/fs"
 	"log"
 	"net/http"
+	"regexp"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -12,11 +16,63 @@ import (
 	"github.com/cloudwego/hertz/pkg/app"
 )
 
-const (
-	contentSecurityPolicy = "default-src 'self'; script-src 'self' 'unsafe-inline'; " +
+var (
+	inlineScriptPattern = regexp.MustCompile(`(?is)<script\b([^>]*)>(.*?)</script\s*>`)
+	srcAttributePattern = regexp.MustCompile(`(?i)(^|\s)src\s*=`)
+)
+
+func (s *Server) securityHeaders(ctx context.Context, c *app.RequestContext) {
+	c.Header("X-Content-Type-Options", "nosniff")
+	c.Header("X-Frame-Options", "SAMEORIGIN")
+	c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+	c.Header("Content-Security-Policy", s.contentSecurityPolicy)
+	c.Next(ctx)
+}
+
+// buildContentSecurityPolicy builds a CSP whose script-src allows only
+// same-origin scripts plus SHA-256 hashes of inline scripts found in the
+// embedded index.html (currently the Nuxt import map).
+func buildContentSecurityPolicy(assets fs.FS) string {
+	scriptSrc := "'self'"
+	if hashes := inlineScriptHashes(assets); len(hashes) > 0 {
+		scriptSrc += " " + strings.Join(hashes, " ")
+	}
+	return "default-src 'self'; script-src " + scriptSrc + "; " +
 		"style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; " +
 		"connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
-)
+}
+
+func inlineScriptHashes(assets fs.FS) []string {
+	if assets == nil {
+		return nil
+	}
+	data, err := fs.ReadFile(assets, "index.html")
+	if err != nil {
+		return nil
+	}
+	return inlineScriptHashesFromHTML(data)
+}
+
+func inlineScriptHashesFromHTML(data []byte) []string {
+	matches := inlineScriptPattern.FindAllSubmatch(data, -1)
+	hashes := make([]string, 0, len(matches))
+	seen := make(map[string]struct{}, len(matches))
+	for _, match := range matches {
+		if srcAttributePattern.Match(match[1]) {
+			continue
+		}
+		sum := sha256.Sum256(match[2])
+		// CSP hash sources must be wrapped in single quotes, otherwise the
+		// browser treats them as invalid sources and ignores them.
+		hash := "'sha256-" + base64.StdEncoding.EncodeToString(sum[:]) + "'"
+		if _, ok := seen[hash]; ok {
+			continue
+		}
+		seen[hash] = struct{}{}
+		hashes = append(hashes, hash)
+	}
+	return hashes
+}
 
 func (s *Server) recoveryMiddleware(ctx context.Context, c *app.RequestContext) {
 	defer func() {
@@ -29,14 +85,6 @@ func (s *Server) recoveryMiddleware(ctx context.Context, c *app.RequestContext) 
 			c.Abort()
 		}
 	}()
-	c.Next(ctx)
-}
-
-func (s *Server) securityHeaders(ctx context.Context, c *app.RequestContext) {
-	c.Header("X-Content-Type-Options", "nosniff")
-	c.Header("X-Frame-Options", "SAMEORIGIN")
-	c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-	c.Header("Content-Security-Policy", contentSecurityPolicy)
 	c.Next(ctx)
 }
 
@@ -86,9 +134,6 @@ func (s *Server) authMiddleware(ctx context.Context, c *app.RequestContext) {
 	}
 
 	token := bearerToken(string(c.GetHeader("Authorization")))
-	if token == "" && path == "/api/v1/events" {
-		token = c.Query("token")
-	}
 	if constantTimeEqual(token, s.cfg.AuthToken) {
 		c.Next(ctx)
 		return

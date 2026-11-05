@@ -12,7 +12,7 @@ const tokenInput = ref('')
 const sse = useSSE({
   onEvent: sim.applyEvent,
   onSnapshot: sim.applySnapshot,
-  token: sim.authToken.value,
+  getToken: () => sim.authToken.value,
 })
 
 const onlineBoards = computed(() => sim.boards.value.filter((board) => board.online).length)

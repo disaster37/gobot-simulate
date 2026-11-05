@@ -3,56 +3,151 @@ import type { SimulatorEvent, Snapshot } from '~/types/simulator'
 
 export type SSEStatus = 'connecting' | 'connected' | 'reconnecting' | 'offline'
 
+export interface SSEFrame {
+  id?: string
+  event?: string
+  data?: string
+}
+
+export interface SSEParser {
+  push: (chunk: string) => void
+  reset: () => void
+}
+
 export interface UseSSEOptions {
   url?: string
   token?: string
+  getToken?: () => string
   onEvent: (event: SimulatorEvent) => void
   onSnapshot?: (snapshot: Snapshot) => void
-  eventSourceFactory?: (url: string) => EventSource
+  fetchImpl?: typeof fetch
 }
 
-const eventTypes = [
-  'snapshot',
-  'board.updated',
-  'device.updated',
-  'pin.updated',
-  'value.updated',
-  'fault.changed',
-  'heartbeat',
-]
+const maxReconnectDelay = 30_000
+const offlineAfterAttempts = 5
+
+function normalizeNewlines(value: string): string {
+  return value.replace(/\r\n?/g, '\n')
+}
+
+/**
+ * parseSSEFrame parses one SSE frame (the text between blank lines).
+ * Unknown fields such as `retry` and comment lines are ignored.
+ */
+export function parseSSEFrame(raw: string): SSEFrame | null {
+  const frame: SSEFrame = {}
+  const data: string[] = []
+
+  for (const line of normalizeNewlines(raw).split('\n')) {
+    if (line === '' || line.startsWith(':')) {
+      continue
+    }
+    const separator = line.indexOf(':')
+    const field = separator === -1 ? line : line.slice(0, separator)
+    let value = separator === -1 ? '' : line.slice(separator + 1)
+    if (value.startsWith(' ')) {
+      value = value.slice(1)
+    }
+    switch (field) {
+      case 'id':
+        frame.id = value
+        break
+      case 'event':
+        frame.event = value
+        break
+      case 'data':
+        data.push(value)
+        break
+      default:
+        break
+    }
+  }
+
+  if (data.length > 0) {
+    frame.data = data.join('\n')
+  }
+  if (frame.id === undefined && frame.event === undefined && frame.data === undefined) {
+    return null
+  }
+  return frame
+}
+
+/**
+ * createSSEParser buffers arbitrary text chunks and emits complete frames.
+ * Frames may span chunks, and one chunk may contain several frames.
+ */
+export function createSSEParser(onFrame: (frame: SSEFrame) => void): SSEParser {
+  let buffer = ''
+
+  function drain(): void {
+    let boundary = buffer.indexOf('\n\n')
+    while (boundary !== -1) {
+      const raw = buffer.slice(0, boundary)
+      buffer = buffer.slice(boundary + 2)
+      const frame = parseSSEFrame(raw)
+      if (frame) {
+        onFrame(frame)
+      }
+      boundary = buffer.indexOf('\n\n')
+    }
+  }
+
+  return {
+    push(chunk: string): void {
+      let combined = buffer + chunk
+      // A chunk may end in the middle of a CRLF pair; keep the trailing CR so
+      // it is not mistaken for a complete blank line.
+      const trailingCR = combined.endsWith('\r')
+      if (trailingCR) {
+        combined = combined.slice(0, -1)
+      }
+      buffer = normalizeNewlines(combined)
+      if (trailingCR) {
+        buffer += '\r'
+      }
+      drain()
+    },
+    reset(): void {
+      buffer = ''
+    },
+  }
+}
 
 export function useSSE(options: UseSSEOptions) {
   const status = ref<SSEStatus>('offline')
   const lastEventId = ref(0)
   const baseURL = options.url ?? '/api/v1/events'
-  let source: EventSource | null = null
+  const fetcher: typeof fetch = options.fetchImpl ?? ((input, init) => globalThis.fetch(input, init))
+
+  let controller: AbortController | null = null
   let attempts = 0
   let timer: ReturnType<typeof setTimeout> | null = null
   let stopped = true
+  let generation = 0
 
-  function buildURL(): string {
-    const params = new URLSearchParams()
+  function currentToken(): string {
+    if (options.getToken) {
+      return options.getToken()
+    }
+    return options.token ?? ''
+  }
+
+  function buildHeaders(): Record<string, string> {
+    const headers: Record<string, string> = { Accept: 'text/event-stream' }
     if (lastEventId.value > 0) {
-      params.set('lastEventId', String(lastEventId.value))
+      headers['Last-Event-ID'] = String(lastEventId.value)
     }
-    if (options.token) {
-      params.set('token', options.token)
+    const token = currentToken()
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
     }
-    const query = params.toString()
-    return query ? `${baseURL}?${query}` : baseURL
+    return headers
   }
 
-  function scheduleReconnect(): void {
-    if (stopped) {
-      return
-    }
-    const delay = Math.min(30_000, 1_000 * 2 ** attempts)
-    attempts += 1
-    status.value = attempts > 5 ? 'offline' : 'reconnecting'
-    timer = setTimeout(connect, delay)
-  }
+  function handleFrame(frame: SSEFrame): void {
+    const eventType = frame.event ?? ''
+    const raw = frame.data ?? ''
 
-  function handleFrame(eventType: string, raw: string): void {
     if (eventType === 'heartbeat') {
       status.value = 'connected'
       return
@@ -63,6 +158,9 @@ export function useSSE(options: UseSSEOptions) {
       options.onSnapshot?.(snapshot)
       return
     }
+    if (!raw) {
+      return
+    }
     const event = JSON.parse(raw) as SimulatorEvent
     if (event.seq <= lastEventId.value) {
       return
@@ -71,43 +169,83 @@ export function useSSE(options: UseSSEOptions) {
     options.onEvent(event)
   }
 
-  function connect(): void {
+  function scheduleReconnect(): void {
     if (stopped) {
       return
     }
-    if (source) {
-      source.close()
-      source = null
+    const delay = Math.min(maxReconnectDelay, 1_000 * 2 ** attempts)
+    attempts += 1
+    status.value = attempts > offlineAfterAttempts ? 'offline' : 'reconnecting'
+    if (timer) {
+      clearTimeout(timer)
     }
-    status.value = attempts > 0 ? 'reconnecting' : 'connecting'
-    source = options.eventSourceFactory
-      ? options.eventSourceFactory(buildURL())
-      : new EventSource(buildURL())
+    timer = setTimeout(() => {
+      timer = null
+      void connect()
+    }, delay)
+  }
 
-    source.onopen = () => {
+  async function connect(): Promise<void> {
+    if (stopped) {
+      return
+    }
+    controller?.abort()
+    const run = ++generation
+    const active = new AbortController()
+    controller = active
+    status.value = attempts > 0 ? 'reconnecting' : 'connecting'
+
+    try {
+      const response = await fetcher(baseURL, {
+        method: 'GET',
+        headers: buildHeaders(),
+        cache: 'no-store',
+        signal: active.signal,
+      })
+      if (!response.ok || !response.body) {
+        throw new Error(`SSE request failed with status ${response.status}`)
+      }
+
       attempts = 0
       status.value = 'connected'
-    }
-    source.onerror = () => {
-      source?.close()
-      source = null
-      scheduleReconnect()
-    }
-    for (const eventType of eventTypes) {
-      source.addEventListener(eventType, (message) => {
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      const parser = createSSEParser((frame) => {
         try {
-          handleFrame(eventType, (message as MessageEvent<string>).data)
+          handleFrame(frame)
         } catch {
           // Ignore malformed frames; the stream remains usable.
         }
       })
+
+      while (!stopped && run === generation) {
+        const { done, value } = await reader.read()
+        if (done) {
+          break
+        }
+        parser.push(decoder.decode(value, { stream: true }))
+      }
+
+      if (!stopped && run === generation) {
+        scheduleReconnect()
+      }
+    } catch {
+      if (active.signal.aborted || stopped || run !== generation) {
+        return
+      }
+      scheduleReconnect()
+    } finally {
+      if (run === generation) {
+        controller = null
+      }
     }
   }
 
   function start(): void {
     stopped = false
     attempts = 0
-    connect()
+    void connect()
   }
 
   function reconnect(): void {
@@ -117,17 +255,18 @@ export function useSSE(options: UseSSEOptions) {
     }
     attempts = 0
     stopped = false
-    connect()
+    void connect()
   }
 
   function stop(): void {
     stopped = true
+    generation += 1
     if (timer) {
       clearTimeout(timer)
       timer = null
     }
-    source?.close()
-    source = null
+    controller?.abort()
+    controller = null
     status.value = 'offline'
   }
 
