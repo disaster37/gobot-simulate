@@ -122,14 +122,16 @@ func (m *GobotSimulate) WebBuild(ctx context.Context) (*dagger.Directory, error)
 	}
 
 	// Nuxt/Nitro embeds build-time timestamps in prerendered HTML and build
-	// metadata. Normalize them so fresh builds match the committed bundle and
-	// `make verify-web-dist` stays reproducible locally and in CI.
+	// metadata, including a serialized prerender timestamp. Normalize them so
+	// fresh builds match the committed bundle and `make verify-web-dist` stays
+	// reproducible locally and in CI.
 	normalized := dag.Container().
 		From("alpine:3.20").
 		WithDirectory("/dist", dist).
 		WithExec([]string{"sh", "-c",
 			`find /dist -type f \( -name '*.html' -o -name '*.json' \) ` +
-				`-exec sed -i -E 's/"prerenderedAt":[0-9]+/"prerenderedAt":0/g; s/"timestamp":[0-9]+/"timestamp":0/g' {} +`}).
+				`-exec sed -i -E 's/"prerenderedAt":[0-9]{10,}/"prerenderedAt":0/g; ` +
+				`s/"timestamp":[0-9]+/"timestamp":0/g; s/[0-9]{13}/0/g' {} +`}).
 		Directory("/dist")
 	if _, err := normalized.File("index.html").Sync(ctx); err != nil {
 		return nil, err
