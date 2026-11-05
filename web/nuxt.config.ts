@@ -1,5 +1,6 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
+  buildId: 'gobot-simulate',
   ssr: false,
   modules: ['@nuxt/ui'],
   css: ['~/assets/css/main.css'],
