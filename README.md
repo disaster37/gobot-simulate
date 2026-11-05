@@ -38,7 +38,7 @@ npm --prefix web run dev        # Nuxt HMR on :3000, proxying /api/v1 to :8080
 | `web/` | Nuxt 4 + Nuxt UI 4 + Tailwind 4 source and Vitest tests |
 | `cmd/gobot-simulate` | Standalone demo binary |
 | `examples/gobot-fat-demo` | Runnable `gobot-fat`-shaped DFP/TFP/tank example |
-| `dagger/` | Thin local Dagger module (`ci`, `lint`, `test`, `test-race`, `vulncheck`, `web-build`, `web-test`, `web-e2e`, `build`, `dev`) |
+| `dagger/` | Thin local Dagger module (`ci`, `lint`, `test`, `test-race`, `vulncheck`, `web-build`, `web-test`, `web-end-to-end`, `build`, `dev`) |
 | `daggerverse/web` | Vendored node/Nuxt static builder used by the Dagger module |
 
 ### Concurrency model
@@ -162,16 +162,16 @@ Root `dagger.json` pins engine `v0.21.8` and the `golang` Daggerverse module. Th
 
 ```bash
 dagger develop
-dagger call -m . functions       # lists build/ci/dev/lint/test/test-race/vulncheck/web-build/web-test/web-e2e
+dagger call -m . functions       # lists build/ci/dev/lint/test/test-race/vulncheck/web-build/web-test/web-end-to-end
 dagger call -m . lint
 dagger call -m . test-race
 dagger call -m . web-build export --path ./webui/dist
 dagger call -m . build export --path ./bin
 dagger call -m . ci export --path .
-make e2e                         # optional Playwright E2E gate (dagger call -m . web-e-2-e)
+make e2e                         # optional Playwright E2E gate (dagger call -m . web-end-to-end)
 ```
 
-`make ci` runs the Dagger CI pipeline, checks `webui/dist/index.html`, then `make verify-web-dist` (`git status --porcelain -- webui/dist`). `webui/dist` and generated Dagger bindings are committed. `make e2e` runs Playwright in the pinned `mcr.microsoft.com/playwright` image against a freshly built simulator; it is intentionally excluded from `ci` to keep CI fast. Dagger's kebab-case conversion splits digit runs, so the Go method `WebE2E` is invoked as `dagger call -m . web-e-2-e` (the Makefile hides this detail). `govulncheck` is pinned to `golang.org/x/vuln/cmd/govulncheck@v1.9.0` for reproducible scans.
+`make ci` runs the Dagger CI pipeline, checks `webui/dist/index.html`, then `make verify-web-dist` (`git status --porcelain -- webui/dist`). `webui/dist` and generated Dagger bindings are committed. `make e2e` runs Playwright in the pinned `mcr.microsoft.com/playwright` image against a freshly built simulator; it is intentionally excluded from `ci` to keep CI fast. The Go method `WebEndToEnd` is invoked as `dagger call -m . web-end-to-end`. `govulncheck` is pinned to `golang.org/x/vuln/cmd/govulncheck@v1.9.0` for reproducible scans.
 
 ## Security
 

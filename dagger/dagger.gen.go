@@ -261,13 +261,13 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
 			}
 			return (*GobotSimulate).WebBuild(&parent, ctx)
-		case "WebE2E":
+		case "WebEndToEnd":
 			var parent GobotSimulate
 			err = json.Unmarshal(parentJSON, &parent)
 			if err != nil {
 				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
 			}
-			return (*GobotSimulate).WebE2E(&parent, ctx)
+			return (*GobotSimulate).WebEndToEnd(&parent, ctx)
 		case "WebTest":
 			var parent GobotSimulate
 			err = json.Unmarshal(parentJSON, &parent)

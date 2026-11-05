@@ -28,7 +28,7 @@ func (m *GobotSimulate) Functions(_ context.Context) ([]string, error) {
 		"vulncheck",
 		"web-build",
 		"web-test",
-		"web-e2e",
+		"web-end-to-end",
 		"build",
 		"dev",
 	}, nil
@@ -77,12 +77,10 @@ func (m *GobotSimulate) WebTest(ctx context.Context) (string, error) {
 		Stdout(ctx)
 }
 
-// WebE2E runs the Playwright E2E suite against a freshly built simulator.
+// WebEndToEnd runs the Playwright E2E suite against a freshly built simulator.
 // It is an optional gate and is intentionally not part of Ci to keep CI fast.
-//
-// Dagger's kebab-case conversion splits the acronym/digit run, so the callable
-// CLI name is `web-e-2-e` (exposed as `make e2e`).
-func (m *GobotSimulate) WebE2E(ctx context.Context) (string, error) {
+// The callable CLI name is `web-end-to-end` (exposed as `make e2e`).
+func (m *GobotSimulate) WebEndToEnd(ctx context.Context) (string, error) {
 	webDist, err := m.WebBuild(ctx)
 	if err != nil {
 		return "", err

@@ -4,7 +4,7 @@ SHELL := /bin/bash
 DAGGER ?= dagger
 LOCAL_MODULE ?= .
 
-.PHONY: ci lint test test-race vulncheck web web-test web-e2e build dev verify-web-dist \
+.PHONY: ci lint test test-race vulncheck web web-test build dev verify-web-dist \
         dagger-develop dev-native e2e e2e-native clean
 
 ## Canonical CI gate (identical locally and in GitHub Actions)
@@ -52,8 +52,8 @@ dev-native:
 	go run ./cmd/gobot-simulate --port 8080
 
 ## Optional Playwright E2E gate (not part of `ci`).
-## Dagger maps the Go method WebE2E to web-e-2-e because it splits digit runs.
-E2E_FUNCTION ?= web-e-2-e
+## Dagger maps the Go method WebEndToEnd to the CLI name web-end-to-end.
+E2E_FUNCTION ?= web-end-to-end
 
 e2e:
 	$(DAGGER) call -m $(LOCAL_MODULE) $(E2E_FUNCTION)
