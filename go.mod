@@ -4,8 +4,8 @@ go 1.27.3
 
 require (
 	github.com/cloudwego/hertz v0.10.6
-	github.com/stretchr/testify v1.10.0
-	gobot.io/x/gobot/v2 v2.5.0
+	github.com/stretchr/testify v1.11.1
+	gobot.io/x/gobot/v2 v2.6.0
 )
 
 require (
@@ -29,9 +29,9 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/warthog618/go-gpiocdev v0.9.1 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	periph.io/x/conn/v3 v3.7.2 // indirect
-	periph.io/x/host/v3 v3.8.3 // indirect
+	periph.io/x/host/v3 v3.8.5 // indirect
 )

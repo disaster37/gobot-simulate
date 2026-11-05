@@ -1,6 +1,6 @@
 # gobot-simulate
 
-An in-memory, thread-safe [Gobot](https://gobot.io) adaptor plus a Hertz REST/SSE API and an embedded Nuxt UI for inspecting and driving simulated boards.
+An in-memory, thread-safe [Gobot](https://gobot.io) adaptor plus a Hertz REST/SSE API and an embedded Nuxt UI for inspecting and driving simulated boards. Built against `gobot.io/x/gobot/v2` v2.6.0.
 
 It is a drop-in replacement for `github.com/disaster37/gobot-fat/mock.MockPlateform` and satisfies the `DFPAdaptor`, `TFPAdaptor`, and `TankAdaptor` interfaces used by `gobot-fat`, without importing `gobot-arest` or requiring physical hardware.
 
