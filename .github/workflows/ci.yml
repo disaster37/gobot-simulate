@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feat/**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: Dagger CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Dagger CLI
+        uses: dagger/dagger-for-github@v8.4.1
+        with:
+          version: "v0.21.8"
+
+      - name: Run canonical Dagger CI pipeline
+        run: make ci

@@ -1,0 +1,23 @@
+import { expect, test } from '@playwright/test'
+
+test('dashboard renders boards and opens a board workbench', async ({ page }) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error') {
+      pageErrors.push(message.text())
+    }
+  })
+
+  const response = await page.goto('/')
+  expect(response?.status()).toBe(200)
+  await expect(page.getByRole('link', { name: 'Gobot Simulator' })).toBeVisible()
+  expect(pageErrors, `page errors: ${pageErrors.join('; ')}`).toEqual([])
+
+  const boardLinks = page.getByRole('link', { name: 'Open board' })
+  if ((await boardLinks.count()) === 0) {
+    test.skip(true, 'the demo simulator is not running with boards')
+  }
+  await boardLinks.first().click()
+  await expect(page.getByText('Pin matrix')).toBeVisible()
+})

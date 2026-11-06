@@ -1,0 +1,19 @@
+{
+  "name": "gobot-simulate",
+  "engineVersion": "v0.21.8",
+  "sdk": {
+    "source": "go"
+  },
+  "dependencies": [
+    {
+      "name": "golang",
+      "source": "github.com/disaster37/dagger-library-go/golang@2.0.18",
+      "pin": "6dc20d4b87a358515dd2f2ddb932f1868ce80d4b"
+    },
+    {
+      "name": "web",
+      "source": "daggerverse/web"
+    }
+  ],
+  "source": "dagger"
+}
