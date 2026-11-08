@@ -8,10 +8,10 @@ const (
 	NginxStaticPath = "/usr/share/nginx/html"
 	WebDistTarget   = "webui/dist"
 	BinTarget       = "bin"
-	NodeVersion     = "22"
+	NodeVersion     = "24"
 	PackageManager  = "npm"
 	PnpmVersion     = "10"
-	NodeTestImage   = "node:22-alpine"
+	NodeTestImage   = "node:24-alpine"
 	PlaywrightImage = "mcr.microsoft.com/playwright:v1.64.1-jammy"
 )
 

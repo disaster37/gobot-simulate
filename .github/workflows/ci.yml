@@ -17,6 +17,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Go (generated-artifact drift check)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
       - name: Install Dagger CLI
         uses: dagger/dagger-for-github@v8.4.1
         with:

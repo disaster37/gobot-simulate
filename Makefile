@@ -5,13 +5,14 @@ DAGGER ?= dagger
 LOCAL_MODULE ?= .
 
 .PHONY: ci lint test test-race vulncheck web web-test build dev verify-web-dist \
-        dagger-develop dev-native e2e e2e-native clean
+        verify-generated generate dagger-develop dev-native e2e e2e-native clean
 
 ## Canonical CI gate (identical locally and in GitHub Actions)
 ci:
 	$(DAGGER) call -m $(LOCAL_MODULE) ci export --path .
 	@test -f ./webui/dist/index.html || (echo "ERROR: ./webui/dist/index.html missing after export" && exit 1)
 	$(MAKE) verify-web-dist
+	$(MAKE) verify-generated
 
 ## Regenerate local Dagger SDK bindings after editing dagger.json or dagger/*.go
 dagger-develop:
@@ -46,6 +47,17 @@ dev:
 ## Verify committed webui/dist matches freshly generated Nuxt bundle (including untracked hashed files)
 verify-web-dist:
 	@test -z "$$(git status --porcelain -- webui/dist)" || (echo "webui/dist is out of date; run 'make web' and commit the result" && git status --porcelain -- webui/dist && exit 1)
+
+## Regenerate committed code (board profiles, support matrix)
+generate:
+	go run ./tools/boardgen
+	go test ./conformance -run TestGenerateSupportMatrix -update
+
+## Verify generated artifacts are reproducible and committed
+verify-generated: generate
+	@test -z "$$(git status --porcelain -- boardprofile docs/support-matrix.md)" || \
+		(echo "generated artifacts are out of date; run 'make generate' and commit the result" && \
+		 git status --porcelain -- boardprofile docs/support-matrix.md && exit 1)
 
 ## Optional native convenience targets for local human debugging / Playwright E2E
 dev-native:

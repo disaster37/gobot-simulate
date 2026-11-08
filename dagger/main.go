@@ -74,6 +74,7 @@ func (m *GobotSimulate) WebTest(ctx context.Context) (string, error) {
 		WithMountedCache("/root/.npm", dag.CacheVolume("npm-cache-node22")).
 		WithExec([]string{"npm", "ci"}).
 		WithExec([]string{"npm", "run", "test:unit"}).
+		WithExec([]string{"npm", "run", "build:layer-smoke"}).
 		Stdout(ctx)
 }
 
@@ -183,6 +184,18 @@ func (m *GobotSimulate) Ci(ctx context.Context) (*dagger.Directory, error) {
 		return nil, err
 	}
 	if _, err := m.WebTest(ctx); err != nil {
+		return nil, err
+	}
+	// Generated artifacts must be reproducible: regenerate inside the build
+	// container and fail if the committed bytes change.
+	if _, err := dag.Golang(src).
+		Container().
+		WithExec([]string{"sh", "-c",
+			`sha256sum boardprofile/profiles_gen.go boardprofile/profiles_gen.json docs/support-matrix.md > /tmp/generated.sha && ` +
+				`go run ./tools/boardgen && ` +
+				`go test ./conformance -run TestGenerateSupportMatrix -update && ` +
+				`sha256sum -c /tmp/generated.sha`}).
+		Stdout(ctx); err != nil {
 		return nil, err
 	}
 	return dag.Directory().

@@ -1,0 +1,3888 @@
+[
+  {
+    "id": "arest",
+    "name": "aREST",
+    "platform": "arest",
+    "permissive": true
+  },
+  {
+    "id": "beaglebone",
+    "name": "Beaglebone",
+    "platform": "beagleboard-beaglebone",
+    "digitalPins": [
+      {
+        "id": "P8_07",
+        "label": "P8_07",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_08",
+        "label": "P8_08",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_09",
+        "label": "P8_09",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_10",
+        "label": "P8_10",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_11",
+        "label": "P8_11",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_12",
+        "label": "P8_12",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_13",
+        "label": "P8_13",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_14",
+        "label": "P8_14",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_15",
+        "label": "P8_15",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_16",
+        "label": "P8_16",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_17",
+        "label": "P8_17",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_18",
+        "label": "P8_18",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_19",
+        "label": "P8_19",
+        "mode": "digital"
+      },
+      {
+        "id": "P8_26",
+        "label": "P8_26",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_11",
+        "label": "P9_11",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_12",
+        "label": "P9_12",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_13",
+        "label": "P9_13",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_14",
+        "label": "P9_14",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_15",
+        "label": "P9_15",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_16",
+        "label": "P9_16",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_17",
+        "label": "P9_17",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_18",
+        "label": "P9_18",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_21",
+        "label": "P9_21",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_22",
+        "label": "P9_22",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_23",
+        "label": "P9_23",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_24",
+        "label": "P9_24",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_25",
+        "label": "P9_25",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_26",
+        "label": "P9_26",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_27",
+        "label": "P9_27",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_28",
+        "label": "P9_28",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_29",
+        "label": "P9_29",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_30",
+        "label": "P9_30",
+        "mode": "digital"
+      },
+      {
+        "id": "P9_31",
+        "label": "P9_31",
+        "mode": "digital"
+      }
+    ],
+    "analogPins": [
+      {
+        "id": "P9_33",
+        "label": "P9_33",
+        "mode": "analog"
+      },
+      {
+        "id": "P9_35",
+        "label": "P9_35",
+        "mode": "analog"
+      },
+      {
+        "id": "P9_36",
+        "label": "P9_36",
+        "mode": "analog"
+      },
+      {
+        "id": "P9_37",
+        "label": "P9_37",
+        "mode": "analog"
+      },
+      {
+        "id": "P9_38",
+        "label": "P9_38",
+        "mode": "analog"
+      },
+      {
+        "id": "P9_39",
+        "label": "P9_39",
+        "mode": "analog"
+      },
+      {
+        "id": "P9_40",
+        "label": "P9_40",
+        "mode": "analog"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "P8_13",
+        "label": "P8_13",
+        "mode": "pwm"
+      },
+      {
+        "id": "P8_19",
+        "label": "P8_19",
+        "mode": "pwm"
+      },
+      {
+        "id": "P9_14",
+        "label": "P9_14",
+        "mode": "pwm"
+      },
+      {
+        "id": "P9_16",
+        "label": "P9_16",
+        "mode": "pwm"
+      },
+      {
+        "id": "P9_21",
+        "label": "P9_21",
+        "mode": "pwm"
+      },
+      {
+        "id": "P9_22",
+        "label": "P9_22",
+        "mode": "pwm"
+      },
+      {
+        "id": "P9_42",
+        "label": "P9_42",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 2
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 1
+      }
+    ],
+    "defaultI2cBus": 2
+  },
+  {
+    "id": "chip",
+    "name": "Chip",
+    "platform": "chip",
+    "digitalPins": [
+      {
+        "id": "AP-EINT1",
+        "label": "AP-EINT1",
+        "mode": "digital"
+      },
+      {
+        "id": "AP-EINT3",
+        "label": "AP-EINT3",
+        "mode": "digital"
+      },
+      {
+        "id": "CSICK",
+        "label": "CSICK",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID0",
+        "label": "CSID0",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID1",
+        "label": "CSID1",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID2",
+        "label": "CSID2",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID3",
+        "label": "CSID3",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID4",
+        "label": "CSID4",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID5",
+        "label": "CSID5",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID6",
+        "label": "CSID6",
+        "mode": "digital"
+      },
+      {
+        "id": "CSID7",
+        "label": "CSID7",
+        "mode": "digital"
+      },
+      {
+        "id": "CSIHSYNC",
+        "label": "CSIHSYNC",
+        "mode": "digital"
+      },
+      {
+        "id": "CSIPCK",
+        "label": "CSIPCK",
+        "mode": "digital"
+      },
+      {
+        "id": "CSIVSYNC",
+        "label": "CSIVSYNC",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-CLK",
+        "label": "LCD-CLK",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D10",
+        "label": "LCD-D10",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D11",
+        "label": "LCD-D11",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D12",
+        "label": "LCD-D12",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D13",
+        "label": "LCD-D13",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D14",
+        "label": "LCD-D14",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D15",
+        "label": "LCD-D15",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D18",
+        "label": "LCD-D18",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D19",
+        "label": "LCD-D19",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D2",
+        "label": "LCD-D2",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D20",
+        "label": "LCD-D20",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D21",
+        "label": "LCD-D21",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D22",
+        "label": "LCD-D22",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D23",
+        "label": "LCD-D23",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D3",
+        "label": "LCD-D3",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D4",
+        "label": "LCD-D4",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D5",
+        "label": "LCD-D5",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D6",
+        "label": "LCD-D6",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-D7",
+        "label": "LCD-D7",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-DE",
+        "label": "LCD-DE",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-HSYNC",
+        "label": "LCD-HSYNC",
+        "mode": "digital"
+      },
+      {
+        "id": "LCD-VSYNC",
+        "label": "LCD-VSYNC",
+        "mode": "digital"
+      },
+      {
+        "id": "PWM0",
+        "label": "PWM0",
+        "mode": "digital"
+      },
+      {
+        "id": "PWM1",
+        "label": "PWM1",
+        "mode": "digital"
+      },
+      {
+        "id": "TWI1-SCK",
+        "label": "TWI1-SCK",
+        "mode": "digital"
+      },
+      {
+        "id": "TWI1-SDA",
+        "label": "TWI1-SDA",
+        "mode": "digital"
+      },
+      {
+        "id": "TWI2-SCK",
+        "label": "TWI2-SCK",
+        "mode": "digital"
+      },
+      {
+        "id": "TWI2-SDA",
+        "label": "TWI2-SDA",
+        "mode": "digital"
+      },
+      {
+        "id": "UART1-RX",
+        "label": "UART1-RX",
+        "mode": "digital"
+      },
+      {
+        "id": "UART1-TX",
+        "label": "UART1-TX",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      },
+      {
+        "transport": "i2c",
+        "number": 2
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ],
+    "defaultI2cBus": 1
+  },
+  {
+    "id": "curie",
+    "name": "Curie",
+    "platform": "intel-iot-curie",
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 1
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ],
+    "defaultI2cBus": 1,
+    "permissive": true
+  },
+  {
+    "id": "dragonboard",
+    "name": "Dragonboard",
+    "platform": "dragonboard",
+    "digitalPins": [
+      {
+        "id": "GPIO_A",
+        "label": "GPIO_A",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_B",
+        "label": "GPIO_B",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_C",
+        "label": "GPIO_C",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_D",
+        "label": "GPIO_D",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_E",
+        "label": "GPIO_E",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_F",
+        "label": "GPIO_F",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_G",
+        "label": "GPIO_G",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_H",
+        "label": "GPIO_H",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_I",
+        "label": "GPIO_I",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_J",
+        "label": "GPIO_J",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_K",
+        "label": "GPIO_K",
+        "mode": "digital"
+      },
+      {
+        "id": "GPIO_L",
+        "label": "GPIO_L",
+        "mode": "digital"
+      },
+      {
+        "id": "LED_1",
+        "label": "LED_1",
+        "mode": "digital"
+      },
+      {
+        "id": "LED_2",
+        "label": "LED_2",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ]
+  },
+  {
+    "id": "edison",
+    "name": "Edison",
+    "platform": "intel-iot-edison",
+    "digitalPins": [
+      {
+        "id": "0",
+        "label": "0",
+        "mode": "digital"
+      },
+      {
+        "id": "1",
+        "label": "1",
+        "mode": "digital"
+      },
+      {
+        "id": "2",
+        "label": "2",
+        "mode": "digital"
+      },
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "4",
+        "label": "4",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "6",
+        "label": "6",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "9",
+        "label": "9",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "14",
+        "label": "14",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "44",
+        "label": "44",
+        "mode": "digital"
+      },
+      {
+        "id": "45",
+        "label": "45",
+        "mode": "digital"
+      },
+      {
+        "id": "46",
+        "label": "46",
+        "mode": "digital"
+      },
+      {
+        "id": "47",
+        "label": "47",
+        "mode": "digital"
+      },
+      {
+        "id": "48",
+        "label": "48",
+        "mode": "digital"
+      },
+      {
+        "id": "49",
+        "label": "49",
+        "mode": "digital"
+      },
+      {
+        "id": "128",
+        "label": "128",
+        "mode": "digital"
+      },
+      {
+        "id": "129",
+        "label": "129",
+        "mode": "digital"
+      },
+      {
+        "id": "130",
+        "label": "130",
+        "mode": "digital"
+      },
+      {
+        "id": "131",
+        "label": "131",
+        "mode": "digital"
+      },
+      {
+        "id": "182",
+        "label": "182",
+        "mode": "digital"
+      },
+      {
+        "id": "183",
+        "label": "183",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-1",
+        "label": "J17-1",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-10",
+        "label": "J17-10",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-11",
+        "label": "J17-11",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-12",
+        "label": "J17-12",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-13",
+        "label": "J17-13",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-14",
+        "label": "J17-14",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-2",
+        "label": "J17-2",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-3",
+        "label": "J17-3",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-4",
+        "label": "J17-4",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-5",
+        "label": "J17-5",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-6",
+        "label": "J17-6",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-7",
+        "label": "J17-7",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-8",
+        "label": "J17-8",
+        "mode": "digital"
+      },
+      {
+        "id": "J17-9",
+        "label": "J17-9",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-1",
+        "label": "J18-1",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-10",
+        "label": "J18-10",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-11",
+        "label": "J18-11",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-12",
+        "label": "J18-12",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-13",
+        "label": "J18-13",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-14",
+        "label": "J18-14",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-2",
+        "label": "J18-2",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-3",
+        "label": "J18-3",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-4",
+        "label": "J18-4",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-5",
+        "label": "J18-5",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-6",
+        "label": "J18-6",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-7",
+        "label": "J18-7",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-8",
+        "label": "J18-8",
+        "mode": "digital"
+      },
+      {
+        "id": "J18-9",
+        "label": "J18-9",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-1",
+        "label": "J19-1",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-10",
+        "label": "J19-10",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-11",
+        "label": "J19-11",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-12",
+        "label": "J19-12",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-13",
+        "label": "J19-13",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-14",
+        "label": "J19-14",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-2",
+        "label": "J19-2",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-3",
+        "label": "J19-3",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-4",
+        "label": "J19-4",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-5",
+        "label": "J19-5",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-6",
+        "label": "J19-6",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-7",
+        "label": "J19-7",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-8",
+        "label": "J19-8",
+        "mode": "digital"
+      },
+      {
+        "id": "J19-9",
+        "label": "J19-9",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-1",
+        "label": "J20-1",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-10",
+        "label": "J20-10",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-11",
+        "label": "J20-11",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-12",
+        "label": "J20-12",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-13",
+        "label": "J20-13",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-14",
+        "label": "J20-14",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-2",
+        "label": "J20-2",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-3",
+        "label": "J20-3",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-4",
+        "label": "J20-4",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-5",
+        "label": "J20-5",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-6",
+        "label": "J20-6",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-7",
+        "label": "J20-7",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-8",
+        "label": "J20-8",
+        "mode": "digital"
+      },
+      {
+        "id": "J20-9",
+        "label": "J20-9",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 1
+      },
+      {
+        "transport": "i2c",
+        "number": 6
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ],
+    "defaultI2cBus": 1
+  },
+  {
+    "id": "firmata",
+    "name": "Firmata",
+    "platform": "firmata",
+    "permissive": true
+  },
+  {
+    "id": "hs200",
+    "name": "Hs200",
+    "platform": "holystone-hs200",
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 1
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ],
+    "defaultI2cBus": 1,
+    "permissive": true
+  },
+  {
+    "id": "jetson",
+    "name": "Jetson",
+    "platform": "jetson",
+    "digitalPins": [
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "38",
+        "label": "38",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "pwm"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 1
+      }
+    ],
+    "defaultI2cBus": 1
+  },
+  {
+    "id": "joule",
+    "name": "Joule",
+    "platform": "intel-iot-joule",
+    "digitalPins": [
+      {
+        "id": "GP100",
+        "label": "GP100",
+        "mode": "digital"
+      },
+      {
+        "id": "GP101",
+        "label": "GP101",
+        "mode": "digital"
+      },
+      {
+        "id": "GP102",
+        "label": "GP102",
+        "mode": "digital"
+      },
+      {
+        "id": "GP103",
+        "label": "GP103",
+        "mode": "digital"
+      },
+      {
+        "id": "GP104",
+        "label": "GP104",
+        "mode": "digital"
+      },
+      {
+        "id": "GP105",
+        "label": "GP105",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_1",
+        "label": "J12_1",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_10",
+        "label": "J12_10",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_11",
+        "label": "J12_11",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_12",
+        "label": "J12_12",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_13",
+        "label": "J12_13",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_14",
+        "label": "J12_14",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_15",
+        "label": "J12_15",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_16",
+        "label": "J12_16",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_17",
+        "label": "J12_17",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_18",
+        "label": "J12_18",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_19",
+        "label": "J12_19",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_2",
+        "label": "J12_2",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_20",
+        "label": "J12_20",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_21",
+        "label": "J12_21",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_22",
+        "label": "J12_22",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_23",
+        "label": "J12_23",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_24",
+        "label": "J12_24",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_25",
+        "label": "J12_25",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_26",
+        "label": "J12_26",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_27",
+        "label": "J12_27",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_28",
+        "label": "J12_28",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_29",
+        "label": "J12_29",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_3",
+        "label": "J12_3",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_30",
+        "label": "J12_30",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_31",
+        "label": "J12_31",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_32",
+        "label": "J12_32",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_33",
+        "label": "J12_33",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_34",
+        "label": "J12_34",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_35",
+        "label": "J12_35",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_36",
+        "label": "J12_36",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_37",
+        "label": "J12_37",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_38",
+        "label": "J12_38",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_39",
+        "label": "J12_39",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_4",
+        "label": "J12_4",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_40",
+        "label": "J12_40",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_5",
+        "label": "J12_5",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_6",
+        "label": "J12_6",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_7",
+        "label": "J12_7",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_8",
+        "label": "J12_8",
+        "mode": "digital"
+      },
+      {
+        "id": "J12_9",
+        "label": "J12_9",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_1",
+        "label": "J13_1",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_10",
+        "label": "J13_10",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_11",
+        "label": "J13_11",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_12",
+        "label": "J13_12",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_13",
+        "label": "J13_13",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_14",
+        "label": "J13_14",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_15",
+        "label": "J13_15",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_16",
+        "label": "J13_16",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_17",
+        "label": "J13_17",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_18",
+        "label": "J13_18",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_19",
+        "label": "J13_19",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_2",
+        "label": "J13_2",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_20",
+        "label": "J13_20",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_21",
+        "label": "J13_21",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_22",
+        "label": "J13_22",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_23",
+        "label": "J13_23",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_24",
+        "label": "J13_24",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_25",
+        "label": "J13_25",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_26",
+        "label": "J13_26",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_27",
+        "label": "J13_27",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_28",
+        "label": "J13_28",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_29",
+        "label": "J13_29",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_3",
+        "label": "J13_3",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_30",
+        "label": "J13_30",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_31",
+        "label": "J13_31",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_32",
+        "label": "J13_32",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_33",
+        "label": "J13_33",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_34",
+        "label": "J13_34",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_35",
+        "label": "J13_35",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_36",
+        "label": "J13_36",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_37",
+        "label": "J13_37",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_38",
+        "label": "J13_38",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_39",
+        "label": "J13_39",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_4",
+        "label": "J13_4",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_40",
+        "label": "J13_40",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_5",
+        "label": "J13_5",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_6",
+        "label": "J13_6",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_7",
+        "label": "J13_7",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_8",
+        "label": "J13_8",
+        "mode": "digital"
+      },
+      {
+        "id": "J13_9",
+        "label": "J13_9",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      },
+      {
+        "transport": "i2c",
+        "number": 2
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ]
+  },
+  {
+    "id": "nanopct6",
+    "name": "Nanopct6",
+    "platform": "friendlyelec-nanopct6",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "digital"
+      },
+      {
+        "id": "27",
+        "label": "27",
+        "mode": "digital"
+      },
+      {
+        "id": "28",
+        "label": "28",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "38",
+        "label": "38",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI0_11",
+        "label": "CSI0_11",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI0_12",
+        "label": "CSI0_12",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI1_11",
+        "label": "CSI1_11",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI1_12",
+        "label": "CSI1_12",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI0_10",
+        "label": "DSI0_10",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI0_12",
+        "label": "DSI0_12",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI0_14",
+        "label": "DSI0_14",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI0_8",
+        "label": "DSI0_8",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI1_10",
+        "label": "DSI1_10",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI1_12",
+        "label": "DSI1_12",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI1_14",
+        "label": "DSI1_14",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI1_8",
+        "label": "DSI1_8",
+        "mode": "digital"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "pwm"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "pwm"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "pwm"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "pwm"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "pwm"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "pwm"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "pwm"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "pwm"
+      },
+      {
+        "id": "DSI0_10",
+        "label": "DSI0_10",
+        "mode": "pwm"
+      },
+      {
+        "id": "DSI1_10",
+        "label": "DSI1_10",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 3
+      },
+      {
+        "transport": "i2c",
+        "number": 4
+      },
+      {
+        "transport": "i2c",
+        "number": 5
+      },
+      {
+        "transport": "i2c",
+        "number": 7
+      },
+      {
+        "transport": "i2c",
+        "number": 8
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 4
+      }
+    ],
+    "defaultI2cBus": 8
+  },
+  {
+    "id": "nanopi",
+    "name": "Nanopi",
+    "platform": "friendlyelec-nanopi",
+    "digitalPins": [
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "PWM",
+        "label": "PWM",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      },
+      {
+        "transport": "i2c",
+        "number": 2
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ]
+  },
+  {
+    "id": "orangepi5pro",
+    "name": "Orangepi5pro",
+    "platform": "orangepi-orangepi5pro",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "digital"
+      },
+      {
+        "id": "27",
+        "label": "27",
+        "mode": "digital"
+      },
+      {
+        "id": "28",
+        "label": "28",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "38",
+        "label": "38",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "pwm"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "pwm"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "pwm"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "pwm"
+      },
+      {
+        "id": "27",
+        "label": "27",
+        "mode": "pwm"
+      },
+      {
+        "id": "28",
+        "label": "28",
+        "mode": "pwm"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "pwm"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 1
+      },
+      {
+        "transport": "i2c",
+        "number": 3
+      },
+      {
+        "transport": "i2c",
+        "number": 4
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 4
+      }
+    ],
+    "defaultI2cBus": 4
+  },
+  {
+    "id": "particle",
+    "name": "Particle",
+    "platform": "particle",
+    "permissive": true
+  },
+  {
+    "id": "pocketbeagle",
+    "name": "Pocketbeagle",
+    "platform": "beagleboard-pocketbeagle",
+    "digitalPins": [
+      {
+        "id": "P1_02",
+        "label": "P1_02",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_04",
+        "label": "P1_04",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_06",
+        "label": "P1_06",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_08",
+        "label": "P1_08",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_10",
+        "label": "P1_10",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_12",
+        "label": "P1_12",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_20",
+        "label": "P1_20",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_26",
+        "label": "P1_26",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_28",
+        "label": "P1_28",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_29",
+        "label": "P1_29",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_30",
+        "label": "P1_30",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_31",
+        "label": "P1_31",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_32",
+        "label": "P1_32",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_33",
+        "label": "P1_33",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_34",
+        "label": "P1_34",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_35",
+        "label": "P1_35",
+        "mode": "digital"
+      },
+      {
+        "id": "P1_36",
+        "label": "P1_36",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_01",
+        "label": "P2_01",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_02",
+        "label": "P2_02",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_03",
+        "label": "P2_03",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_04",
+        "label": "P2_04",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_05",
+        "label": "P2_05",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_06",
+        "label": "P2_06",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_07",
+        "label": "P2_07",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_08",
+        "label": "P2_08",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_09",
+        "label": "P2_09",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_10",
+        "label": "P2_10",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_11",
+        "label": "P2_11",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_17",
+        "label": "P2_17",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_18",
+        "label": "P2_18",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_19",
+        "label": "P2_19",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_20",
+        "label": "P2_20",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_22",
+        "label": "P2_22",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_24",
+        "label": "P2_24",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_25",
+        "label": "P2_25",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_27",
+        "label": "P2_27",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_28",
+        "label": "P2_28",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_29",
+        "label": "P2_29",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_30",
+        "label": "P2_30",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_31",
+        "label": "P2_31",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_32",
+        "label": "P2_32",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_33",
+        "label": "P2_33",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_34",
+        "label": "P2_34",
+        "mode": "digital"
+      },
+      {
+        "id": "P2_35",
+        "label": "P2_35",
+        "mode": "digital"
+      },
+      {
+        "id": "usr0",
+        "label": "usr0",
+        "mode": "digital"
+      },
+      {
+        "id": "usr1",
+        "label": "usr1",
+        "mode": "digital"
+      },
+      {
+        "id": "usr2",
+        "label": "usr2",
+        "mode": "digital"
+      },
+      {
+        "id": "usr3",
+        "label": "usr3",
+        "mode": "digital"
+      }
+    ],
+    "analogPins": [
+      {
+        "id": "P1_19",
+        "label": "P1_19",
+        "mode": "analog"
+      },
+      {
+        "id": "P1_21",
+        "label": "P1_21",
+        "mode": "analog"
+      },
+      {
+        "id": "P1_23",
+        "label": "P1_23",
+        "mode": "analog"
+      },
+      {
+        "id": "P1_25",
+        "label": "P1_25",
+        "mode": "analog"
+      },
+      {
+        "id": "P1_27",
+        "label": "P1_27",
+        "mode": "analog"
+      },
+      {
+        "id": "P2_36",
+        "label": "P2_36",
+        "mode": "analog"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "P1_33",
+        "label": "P1_33",
+        "mode": "pwm"
+      },
+      {
+        "id": "P1_36",
+        "label": "P1_36",
+        "mode": "pwm"
+      },
+      {
+        "id": "P2_1",
+        "label": "P2_1",
+        "mode": "pwm"
+      },
+      {
+        "id": "P2_3",
+        "label": "P2_3",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 1
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ],
+    "defaultI2cBus": 1
+  },
+  {
+    "id": "raspi",
+    "name": "Raspi",
+    "platform": "raspi",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "38",
+        "label": "38",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      },
+      {
+        "id": "pwm0",
+        "label": "pwm0",
+        "mode": "digital"
+      },
+      {
+        "id": "pwm1",
+        "label": "pwm1",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 1
+      }
+    ],
+    "defaultI2cBus": 1
+  },
+  {
+    "id": "rock64",
+    "name": "Rock64",
+    "platform": "pine64-rock64",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "digital"
+      },
+      {
+        "id": "19_M2",
+        "label": "19_M2",
+        "mode": "digital"
+      },
+      {
+        "id": "21_M2",
+        "label": "21_M2",
+        "mode": "digital"
+      },
+      {
+        "id": "23_M2",
+        "label": "23_M2",
+        "mode": "digital"
+      },
+      {
+        "id": "24_M2",
+        "label": "24_M2",
+        "mode": "digital"
+      },
+      {
+        "id": "27_SDA",
+        "label": "27_SDA",
+        "mode": "digital"
+      },
+      {
+        "id": "28_SCL",
+        "label": "28_SCL",
+        "mode": "digital"
+      },
+      {
+        "id": "32_SD",
+        "label": "32_SD",
+        "mode": "digital"
+      },
+      {
+        "id": "33_SD",
+        "label": "33_SD",
+        "mode": "digital"
+      },
+      {
+        "id": "35_SD",
+        "label": "35_SD",
+        "mode": "digital"
+      },
+      {
+        "id": "36_SD",
+        "label": "36_SD",
+        "mode": "digital"
+      },
+      {
+        "id": "37_SD",
+        "label": "37_SD",
+        "mode": "digital"
+      },
+      {
+        "id": "38_SD",
+        "label": "38_SD",
+        "mode": "digital"
+      },
+      {
+        "id": "40_SD",
+        "label": "40_SD",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_10",
+        "label": "P5_10",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_11",
+        "label": "P5_11",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_12",
+        "label": "P5_12",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_13",
+        "label": "P5_13",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_14",
+        "label": "P5_14",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_21",
+        "label": "P5_21",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_22",
+        "label": "P5_22",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_3",
+        "label": "P5_3",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_4",
+        "label": "P5_4",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_5",
+        "label": "P5_5",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_6",
+        "label": "P5_6",
+        "mode": "digital"
+      },
+      {
+        "id": "P5_9",
+        "label": "P5_9",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      }
+    ],
+    "defaultI2cBus": 1
+  },
+  {
+    "id": "rockpi",
+    "name": "Rockpi",
+    "platform": "radxa-rockpi",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "27",
+        "label": "27",
+        "mode": "digital"
+      },
+      {
+        "id": "28",
+        "label": "28",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "38",
+        "label": "38",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 2
+      },
+      {
+        "transport": "i2c",
+        "number": 6
+      },
+      {
+        "transport": "i2c",
+        "number": 7
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 1
+      },
+      {
+        "transport": "spi",
+        "number": 2
+      }
+    ],
+    "defaultI2cBus": 7,
+    "defaultSpiBus": 1
+  },
+  {
+    "id": "simulated",
+    "name": "Simulated",
+    "platform": "simulated",
+    "permissive": true
+  },
+  {
+    "id": "tinkerboard",
+    "name": "Tinkerboard",
+    "platform": "asus-tinkerboard",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "digital"
+      },
+      {
+        "id": "27",
+        "label": "27",
+        "mode": "digital"
+      },
+      {
+        "id": "28",
+        "label": "28",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "38",
+        "label": "38",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "pwm"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 0
+      },
+      {
+        "transport": "i2c",
+        "number": 1
+      },
+      {
+        "transport": "i2c",
+        "number": 2
+      },
+      {
+        "transport": "i2c",
+        "number": 3
+      },
+      {
+        "transport": "i2c",
+        "number": 4
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 2
+      }
+    ],
+    "defaultI2cBus": 1
+  },
+  {
+    "id": "tinkerboard2",
+    "name": "Tinkerboard2",
+    "platform": "asus-tinkerboard2",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "digital"
+      },
+      {
+        "id": "27",
+        "label": "27",
+        "mode": "digital"
+      },
+      {
+        "id": "28",
+        "label": "28",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "38",
+        "label": "38",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI_1",
+        "label": "CSI_1",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI_2",
+        "label": "CSI_2",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI_3",
+        "label": "CSI_3",
+        "mode": "digital"
+      },
+      {
+        "id": "CSI_4",
+        "label": "CSI_4",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI_1",
+        "label": "DSI_1",
+        "mode": "digital"
+      },
+      {
+        "id": "DSI_2",
+        "label": "DSI_2",
+        "mode": "digital"
+      },
+      {
+        "id": "J6_1",
+        "label": "J6_1",
+        "mode": "digital"
+      },
+      {
+        "id": "J6_2",
+        "label": "J6_2",
+        "mode": "digital"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "pwm"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "pwm"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 6
+      },
+      {
+        "transport": "i2c",
+        "number": 7
+      },
+      {
+        "transport": "i2c",
+        "number": 8
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 1
+      },
+      {
+        "transport": "spi",
+        "number": 5
+      }
+    ],
+    "defaultI2cBus": 7,
+    "defaultSpiBus": 1
+  },
+  {
+    "id": "up2",
+    "name": "Up2",
+    "platform": "upboard-up2",
+    "digitalPins": [
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "29",
+        "label": "29",
+        "mode": "digital"
+      },
+      {
+        "id": "31",
+        "label": "31",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "33",
+        "label": "33",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 5
+      },
+      {
+        "transport": "i2c",
+        "number": 6
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 1
+      }
+    ],
+    "defaultI2cBus": 5
+  },
+  {
+    "id": "zero",
+    "name": "Zero",
+    "platform": "radxa-zero",
+    "digitalPins": [
+      {
+        "id": "3",
+        "label": "3",
+        "mode": "digital"
+      },
+      {
+        "id": "5",
+        "label": "5",
+        "mode": "digital"
+      },
+      {
+        "id": "7",
+        "label": "7",
+        "mode": "digital"
+      },
+      {
+        "id": "8",
+        "label": "8",
+        "mode": "digital"
+      },
+      {
+        "id": "10",
+        "label": "10",
+        "mode": "digital"
+      },
+      {
+        "id": "11",
+        "label": "11",
+        "mode": "digital"
+      },
+      {
+        "id": "12",
+        "label": "12",
+        "mode": "digital"
+      },
+      {
+        "id": "13",
+        "label": "13",
+        "mode": "digital"
+      },
+      {
+        "id": "16",
+        "label": "16",
+        "mode": "digital"
+      },
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "digital"
+      },
+      {
+        "id": "19",
+        "label": "19",
+        "mode": "digital"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "digital"
+      },
+      {
+        "id": "22",
+        "label": "22",
+        "mode": "digital"
+      },
+      {
+        "id": "23",
+        "label": "23",
+        "mode": "digital"
+      },
+      {
+        "id": "24",
+        "label": "24",
+        "mode": "digital"
+      },
+      {
+        "id": "27",
+        "label": "27",
+        "mode": "digital"
+      },
+      {
+        "id": "28",
+        "label": "28",
+        "mode": "digital"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "digital"
+      },
+      {
+        "id": "35",
+        "label": "35",
+        "mode": "digital"
+      },
+      {
+        "id": "36",
+        "label": "36",
+        "mode": "digital"
+      },
+      {
+        "id": "37",
+        "label": "37",
+        "mode": "digital"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "digital"
+      },
+      {
+        "id": "LED",
+        "label": "LED",
+        "mode": "digital"
+      }
+    ],
+    "analogPins": [
+      {
+        "id": "15",
+        "label": "15",
+        "mode": "analog"
+      },
+      {
+        "id": "26",
+        "label": "26",
+        "mode": "analog"
+      },
+      {
+        "id": "15_mean",
+        "label": "15_mean",
+        "mode": "analog"
+      },
+      {
+        "id": "26_mean",
+        "label": "26_mean",
+        "mode": "analog"
+      }
+    ],
+    "pwmPins": [
+      {
+        "id": "18",
+        "label": "18",
+        "mode": "pwm"
+      },
+      {
+        "id": "21",
+        "label": "21",
+        "mode": "pwm"
+      },
+      {
+        "id": "32",
+        "label": "32",
+        "mode": "pwm"
+      },
+      {
+        "id": "40",
+        "label": "40",
+        "mode": "pwm"
+      }
+    ],
+    "i2cBuses": [
+      {
+        "transport": "i2c",
+        "number": 1
+      },
+      {
+        "transport": "i2c",
+        "number": 3
+      },
+      {
+        "transport": "i2c",
+        "number": 4
+      }
+    ],
+    "spiBuses": [
+      {
+        "transport": "spi",
+        "number": 0
+      },
+      {
+        "transport": "spi",
+        "number": 1
+      }
+    ],
+    "defaultI2cBus": 3
+  }
+]

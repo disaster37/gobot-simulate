@@ -38,6 +38,12 @@ coverage.out
 web/node_modules/
 web/.nuxt/
 web/.output/
+web/layer/node_modules/
+web/layer/.nuxt/
+web/layer/.output/
+web/layer-smoke/node_modules/
+web/layer-smoke/.nuxt/
+web/layer-smoke/.output/
 .dagger-deps/
 
 # Keep committed Dagger SDK bindings and webui/dist (do not ignore them)
