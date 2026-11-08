@@ -54,13 +54,18 @@ func TestResponderPollIsRaceFree(t *testing.T) {
 				return
 			default:
 			}
-			_, _ = client.Write([]byte{reportDigital, 0x01})
-			_, _ = client.Write([]byte{pinMode, 0x00, ModeInput})
+			if _, err := client.Write([]byte{reportDigital, 0x01}); err != nil {
+				return
+			}
+			if _, err := client.Write([]byte{pinMode, 0x00, ModeInput}); err != nil {
+				return
+			}
 			time.Sleep(time.Millisecond)
 		}
 	}()
 
 	time.Sleep(20 * time.Millisecond)
 	cancel()
+	require.NoError(t, client.Close())
 	<-done
 }
