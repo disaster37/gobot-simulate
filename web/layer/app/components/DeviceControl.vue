@@ -15,6 +15,7 @@ const returnCode = ref(0)
 const functionResult = ref<number | null>(null)
 const selectedFault = ref<DeviceFault>('stuck-high')
 const actionError = ref('')
+const rgb = ref({ red: 0, green: 0, blue: 0 })
 
 const faults: DeviceFault[] = [
   'stuck-high',
@@ -45,6 +46,10 @@ const isSensor = computed(() =>
   ),
 )
 const isDisplay = computed(() => props.device.kind === 'display')
+const isRGB = computed(() => props.device.kind === 'rgb-led')
+const showNumeric = computed(
+  () => isOutput.value && !['relay', 'buzzer', 'rgb-led'].includes(props.device.kind),
+)
 const isValue = computed(() => props.device.kind === 'value')
 const isFunction = computed(() => props.device.kind === 'function')
 const booleanValue = computed(() => typeof props.device.state.value === 'boolean')
@@ -114,6 +119,11 @@ async function setLatch(active: boolean) {
 
 async function applyNumeric() {
   await command(commandForKind(), numericValue.value)
+}
+
+async function applyRGB() {
+  const packed = (rgb.value.red << 16) | (rgb.value.green << 8) | rgb.value.blue
+  await command('setrgb', packed)
 }
 
 async function applyBoolean(value: boolean) {
@@ -256,12 +266,18 @@ function commandLabel(): string {
           Toggle
         </UButton>
       </div>
-      <div class="flex items-center gap-3">
+      <div v-if="showNumeric" class="flex items-center gap-3">
         <USlider v-model="numericValue" :min="minValue" :max="maxValue" class="flex-1" />
         <UInput v-model.number="numericValue" type="number" class="w-24" />
         <UButton size="sm" @click="applyNumeric">{{ commandLabel() }}</UButton>
       </div>
-      <p class="text-xs text-muted">
+      <div v-if="isRGB" class="flex flex-wrap items-center gap-2">
+        <UInput v-model.number="rgb.red" type="number" :min="0" :max="255" class="w-24" placeholder="R" />
+        <UInput v-model.number="rgb.green" type="number" :min="0" :max="255" class="w-24" placeholder="G" />
+        <UInput v-model.number="rgb.blue" type="number" :min="0" :max="255" class="w-24" placeholder="B" />
+        <UButton size="sm" @click="applyRGB">Set RGB</UButton>
+      </div>
+      <p v-if="showNumeric" class="text-xs text-muted">
         {{ minValue }}–{{ maxValue }} {{ device.capabilities.unit || '' }}
       </p>
     </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useSimulator } from '../composables/useSimulator'
 import type { TraceKind, TraceRecord, WaveformSeries } from '../types/simulator'
 
@@ -26,6 +26,7 @@ const paused = ref(false)
 const follow = ref(true)
 const frozen = ref<TraceRecord[]>([])
 const waveforms = ref<WaveformSeries[]>([])
+const tableWrap = ref<HTMLElement | null>(null)
 const error = ref('')
 const loading = ref(false)
 
@@ -53,6 +54,19 @@ const targets = computed(() => {
 })
 
 const steps = computed(() => records.value.filter((record) => record.kind === 'step'))
+
+watch(
+  () => records.value.length,
+  async () => {
+    if (!follow.value) {
+      return
+    }
+    await nextTick()
+    if (tableWrap.value) {
+      tableWrap.value.scrollTop = tableWrap.value.scrollHeight
+    }
+  },
+)
 
 const columns = [
   { accessorKey: 'seq', header: 'Seq' },
@@ -241,7 +255,7 @@ onMounted(async () => {
     </div>
 
     <UCard>
-      <div :class="follow ? 'max-h-[32rem] overflow-auto' : 'max-h-[32rem] overflow-auto'">
+      <div ref="tableWrap" class="max-h-[32rem] overflow-auto">
         <UTable :data="records" :columns="columns">
           <template #timestamp-cell="{ row }">
             <span class="text-xs text-muted">
