@@ -48,6 +48,7 @@ type discoveredSpec struct {
 	Driver string
 	State  map[string]interface{}
 	Active bool
+	Ref    gobot.Device
 }
 
 func (s *Simulator) discoverDevice(board *state.Board, device gobot.Device, running bool, hints []DeviceSpec) error {
@@ -96,6 +97,134 @@ func (s *Simulator) discoverDevice(board *state.Board, device gobot.Device, runn
 		hint := findHint(hints, d.Name(), d.Pin())
 		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindSensor)
 		spec.State = map[string]interface{}{"rawValue": d.RawValue(), "value": d.Value()}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.MotorDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindMotor)
+		spec.State = map[string]interface{}{"speed": int(d.Speed()), "direction": d.Direction()}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.StepperDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindStepper)
+		spec.State = map[string]interface{}{"step": d.CurrentStep(), "speed": int(d.MaxSpeed())}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.EasyDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindStepper)
+		spec.State = map[string]interface{}{"step": d.CurrentStep()}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.BuzzerDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindBuzzer)
+		spec.Active = d.State()
+		spec.State = map[string]interface{}{"active": d.State(), "bpm": d.BPM()}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.RgbLedDriver:
+		hint := findHint(hints, d.Name(), "")
+		spec := baseSpec(hint, device, "", state.DeviceKindRGBLED)
+		spec.Pins = dedupeStrings([]string{d.RedPin(), d.GreenPin(), d.BluePin()})
+		spec.Active = d.State()
+		spec.State = map[string]interface{}{"active": d.State()}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.PIRMotionDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindPIR)
+		spec.Active = d.Active()
+		spec.State = map[string]interface{}{"active": d.Active(), "pinValue": pinValue(board, d.Pin())}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.HCSR04Driver:
+		hint := findHint(hints, d.Name(), "")
+		spec := baseSpec(hint, device, "", state.DeviceKindDistance)
+		spec.State = map[string]interface{}{"distance": d.Distance()}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.DirectPinDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindDirectPin)
+		spec.State = map[string]interface{}{"pinValue": pinValue(board, d.Pin())}
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.GroveRelayDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindRelay)
+		spec.Active = d.State()
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.GroveLedDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindLED)
+		spec.Active = d.State()
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.GroveBuzzerDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindBuzzer)
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.GroveButtonDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindButton)
+		spec.DefaultState = IntPtr(inferButtonDefaultState(hint, d.ButtonDriver, pinState(board, d.Pin()), running))
+		spec.Active = d.Active()
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.GroveTouchDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindButton)
+		spec.DefaultState = IntPtr(inferButtonDefaultState(hint, d.ButtonDriver, pinState(board, d.Pin()), running))
+		spec.Active = d.Active()
+		return s.registerDiscovered(board, spec)
+
+	case *gpio.GroveMagneticSwitchDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindCaptor)
+		spec.DefaultState = IntPtr(inferButtonDefaultState(hint, d.ButtonDriver, pinState(board, d.Pin()), running))
+		spec.Active = d.Active()
+		return s.registerDiscovered(board, spec)
+
+	case *aio.AnalogActuatorDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindAnalogActuator)
+		spec.State = map[string]interface{}{"value": d.Value()}
+		return s.registerDiscovered(board, spec)
+
+	case *aio.TemperatureSensorDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindTemperature)
+		spec.State = map[string]interface{}{"value": d.Value(), "rawValue": d.RawValue()}
+		return s.registerDiscovered(board, spec)
+
+	case *aio.GroveTemperatureSensorDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindTemperature)
+		spec.State = map[string]interface{}{"value": d.Value(), "rawValue": d.RawValue()}
+		return s.registerDiscovered(board, spec)
+
+	case *aio.GroveRotaryDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindSensor)
+		return s.registerDiscovered(board, spec)
+
+	case *aio.GroveLightSensorDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindSensor)
+		return s.registerDiscovered(board, spec)
+
+	case *aio.GroveSoundSensorDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindSensor)
+		return s.registerDiscovered(board, spec)
+
+	case *aio.GrovePiezoVibrationSensorDriver:
+		hint := findHint(hints, d.Name(), d.Pin())
+		spec := baseSpec(hint, device, d.Pin(), state.DeviceKindSensor)
 		return s.registerDiscovered(board, spec)
 
 	default:
@@ -158,8 +287,11 @@ func baseSpec(hint *DeviceSpec, device gobot.Device, pin string, kind state.Devi
 			Inverted:     hint != nil && hint.Inverted,
 			Labels:       hintLabels(hint),
 			Capabilities: hintCapabilities(hint),
+			Source:       state.SourceDiscovery,
+			Wiring:       hintWiring(hint),
 		},
 		Driver: fmt.Sprintf("%T", device),
+		Ref:    device,
 	}
 }
 
@@ -208,6 +340,9 @@ func (s *Simulator) registerDiscovered(board *state.Board, spec discoveredSpec) 
 		Labels:       spec.Labels,
 	}
 	board.RegisterDevice(deviceState)
+	if spec.Ref != nil {
+		s.attachDriver(board.ID(), id, spec.Ref)
+	}
 	return nil
 }
 
@@ -296,6 +431,20 @@ func pinValue(board *state.Board, pin string) int {
 		return p.DigitalValue
 	}
 	return 0
+}
+
+func pinState(board *state.Board, pin string) state.PinState {
+	if p, ok := board.Pin(pin); ok {
+		return p
+	}
+	return state.PinState{Pin: pin}
+}
+
+func hintWiring(hint *DeviceSpec) state.Wiring {
+	if hint == nil {
+		return state.Wiring{}
+	}
+	return hint.Wiring
 }
 
 func boardValue(board *state.Board, name string) interface{} {

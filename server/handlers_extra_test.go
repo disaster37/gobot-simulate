@@ -41,7 +41,7 @@ func TestPatchDeviceErrorBranches(t *testing.T) {
 		wantCode   string
 	}{
 		{"no fields", "/api/v1/boards/dfp/devices/relay_drum", `{}`, http.StatusBadRequest, "INVALID_VALUE"},
-		{"relay active noop", "/api/v1/boards/dfp/devices/relay_drum", `{"active":false}`, http.StatusOK, ""},
+		{"relay active read only", "/api/v1/boards/dfp/devices/relay_drum", `{"active":false}`, http.StatusUnprocessableEntity, "READ_ONLY"},
 		{"pwm value over range", "/api/v1/boards/dfp/devices/pwm_fan", `{"value":300}`, http.StatusBadRequest, "INVALID_VALUE"},
 		{"pwm value ok", "/api/v1/boards/dfp/devices/pwm_fan", `{"value":100}`, http.StatusOK, ""},
 		{"servo value over range", "/api/v1/boards/dfp/devices/servo_valve", `{"value":200}`, http.StatusBadRequest, "INVALID_VALUE"},
@@ -51,7 +51,7 @@ func TestPatchDeviceErrorBranches(t *testing.T) {
 		{"relay byte read only", "/api/v1/boards/dfp/devices/relay_drum", `{"byteValue":5}`, http.StatusUnprocessableEntity, "READ_ONLY"},
 		{"relay angle read only", "/api/v1/boards/dfp/devices/relay_drum", `{"angle":90}`, http.StatusUnprocessableEntity, "READ_ONLY"},
 		{"servo angle over range", "/api/v1/boards/dfp/devices/servo_valve", `{"angle":200}`, http.StatusBadRequest, "INVALID_VALUE"},
-		{"led toggle ok", "/api/v1/boards/dfp/devices/led", `{"active":true}`, http.StatusOK, ""},
+		{"led active read only", "/api/v1/boards/dfp/devices/led", `{"active":true}`, http.StatusUnprocessableEntity, "READ_ONLY"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -65,6 +65,14 @@ func (m *MockClock) After(d time.Duration) <-chan time.Time {
 	return ch
 }
 
+// Waiters returns the number of pending timers. Tests use this to avoid
+// advancing the clock before a timer goroutine has registered itself.
+func (m *MockClock) Waiters() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.waiters)
+}
+
 // Advance moves the mock clock forward and fires due waiters.
 func (m *MockClock) Advance(d time.Duration) {
 	m.mu.Lock()

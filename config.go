@@ -22,6 +22,9 @@ type Config struct {
 	EventBuffer int           `json:"eventBuffer"`
 	Latency     time.Duration `json:"latency"`
 	AuthToken   string        `json:"authToken"`
+	Topology    string        `json:"topology,omitempty"`
+	TraceBuffer int           `json:"traceBuffer"`
+	AREST       bool          `json:"arestEnabled"`
 }
 
 // DefaultConfig returns the documented default configuration.
@@ -35,6 +38,9 @@ func DefaultConfig() Config {
 		EventBuffer: 1024,
 		Latency:     0,
 		AuthToken:   "",
+		Topology:    "",
+		TraceBuffer: 8192,
+		AREST:       true,
 	}
 }
 
@@ -69,6 +75,9 @@ func LoadConfig(args []string) (Config, error) {
 	fs.IntVar(&cfg.EventBuffer, "event-buffer", cfg.EventBuffer, "SSE replay buffer size")
 	fs.DurationVar(&cfg.Latency, "latency", cfg.Latency, "simulated I/O latency")
 	fs.StringVar(&cfg.AuthToken, "auth-token", cfg.AuthToken, "optional bearer token")
+	fs.StringVar(&cfg.Topology, "topology", cfg.Topology, "path to a topology YAML/JSON file")
+	fs.IntVar(&cfg.TraceBuffer, "trace-buffer", cfg.TraceBuffer, "I/O trace ring size")
+	fs.BoolVar(&cfg.AREST, "arest", cfg.AREST, "serve the aREST emulation")
 	if err := fs.Parse(args); err != nil {
 		return Config{}, fmt.Errorf("simulate: invalid config: %w", err)
 	}
@@ -95,6 +104,9 @@ func (c Config) Validate() error {
 	}
 	if c.Latency < 0 || c.Latency > 30*time.Second {
 		return errors.New("simulate: invalid config: SIMULATE_LATENCY must be between 0s and 30s")
+	}
+	if c.TraceBuffer < 16 || c.TraceBuffer > 1000000 {
+		return errors.New("simulate: invalid config: SIMULATE_TRACE_BUFFER must be between 16 and 1000000")
 	}
 	return nil
 }
@@ -143,6 +155,23 @@ func applyEnv(cfg *Config) error {
 	}
 	if raw, ok := os.LookupEnv("SIMULATE_AUTH_TOKEN"); ok {
 		cfg.AuthToken = raw
+	}
+	if raw, ok := os.LookupEnv("SIMULATE_TOPOLOGY"); ok {
+		cfg.Topology = strings.TrimSpace(raw)
+	}
+	if raw, ok := os.LookupEnv("SIMULATE_TRACE_BUFFER"); ok {
+		value, err := strconv.Atoi(strings.TrimSpace(raw))
+		if err != nil {
+			return fmt.Errorf("simulate: invalid config: SIMULATE_TRACE_BUFFER must be an integer: %w", err)
+		}
+		cfg.TraceBuffer = value
+	}
+	if raw, ok := os.LookupEnv("SIMULATE_AREST"); ok {
+		value, err := strconv.ParseBool(strings.TrimSpace(raw))
+		if err != nil {
+			return fmt.Errorf("simulate: invalid config: SIMULATE_AREST must be a boolean: %w", err)
+		}
+		cfg.AREST = value
 	}
 	return nil
 }

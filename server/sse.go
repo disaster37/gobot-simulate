@@ -38,6 +38,8 @@ func (s *Server) handleEvents(ctx context.Context, c *app.RequestContext) {
 
 	events, missed, replayOK := s.backend.SubscribeWithReplay(lastID)
 	defer s.backend.Unsubscribe(events)
+	traceEvents := s.backend.SubscribeTrace()
+	defer s.backend.UnsubscribeTrace(traceEvents)
 
 	c.SetStatusCode(http.StatusOK)
 	writer := sse.NewWriter(c)
@@ -106,6 +108,17 @@ func (s *Server) handleEvents(ctx context.Context, c *app.RequestContext) {
 				return
 			}
 			if err := writer.Write(&sse.Event{Type: string(state.EventHeartbeat), Data: data}); err != nil {
+				return
+			}
+		case rec, ok := <-traceEvents:
+			if !ok {
+				return
+			}
+			data, err := json.Marshal(rec)
+			if err != nil {
+				continue
+			}
+			if err := writer.Write(&sse.Event{Type: string(state.EventTrace), Data: data}); err != nil {
 				return
 			}
 		}

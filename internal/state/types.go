@@ -30,23 +30,54 @@ func (m PinMode) Valid() bool {
 type DeviceKind string
 
 const (
-	DeviceKindRelay    DeviceKind = "relay"
-	DeviceKindLED      DeviceKind = "led"
-	DeviceKindButton   DeviceKind = "button"
-	DeviceKindCaptor   DeviceKind = "captor"
-	DeviceKindSensor   DeviceKind = "sensor"
-	DeviceKindPWM      DeviceKind = "pwm"
-	DeviceKindServo    DeviceKind = "servo"
-	DeviceKindAnalog   DeviceKind = "analog"
-	DeviceKindValue    DeviceKind = "value"
-	DeviceKindFunction DeviceKind = "function"
+	DeviceKindRelay          DeviceKind = "relay"
+	DeviceKindLED            DeviceKind = "led"
+	DeviceKindRGBLED         DeviceKind = "rgb-led"
+	DeviceKindButton         DeviceKind = "button"
+	DeviceKindCaptor         DeviceKind = "captor"
+	DeviceKindPIR            DeviceKind = "pir"
+	DeviceKindSensor         DeviceKind = "sensor"
+	DeviceKindPWM            DeviceKind = "pwm"
+	DeviceKindServo          DeviceKind = "servo"
+	DeviceKindAnalog         DeviceKind = "analog"
+	DeviceKindAnalogActuator DeviceKind = "analog-actuator"
+	DeviceKindMotor          DeviceKind = "motor"
+	DeviceKindStepper        DeviceKind = "stepper"
+	DeviceKindBuzzer         DeviceKind = "buzzer"
+	DeviceKindDirectPin      DeviceKind = "direct-pin"
+	DeviceKindDistance       DeviceKind = "distance"
+	DeviceKindTemperature    DeviceKind = "temperature"
+	DeviceKindDisplay        DeviceKind = "display"
+	DeviceKindExpander       DeviceKind = "expander"
+	DeviceKindIMU            DeviceKind = "imu"
+	DeviceKindADC            DeviceKind = "adc"
+	DeviceKindRFID           DeviceKind = "rfid"
+	DeviceKindValue          DeviceKind = "value"
+	DeviceKindFunction       DeviceKind = "function"
 )
+
+// DeviceKinds returns every known device kind.
+func DeviceKinds() []DeviceKind {
+	return []DeviceKind{
+		DeviceKindRelay, DeviceKindLED, DeviceKindRGBLED, DeviceKindButton,
+		DeviceKindCaptor, DeviceKindPIR, DeviceKindSensor, DeviceKindPWM,
+		DeviceKindServo, DeviceKindAnalog, DeviceKindAnalogActuator,
+		DeviceKindMotor, DeviceKindStepper, DeviceKindBuzzer, DeviceKindDirectPin,
+		DeviceKindDistance, DeviceKindTemperature, DeviceKindDisplay,
+		DeviceKindExpander, DeviceKindIMU, DeviceKindADC, DeviceKindRFID,
+		DeviceKindValue, DeviceKindFunction,
+	}
+}
 
 // Valid reports whether k is a known device kind.
 func (k DeviceKind) Valid() bool {
 	switch k {
-	case DeviceKindRelay, DeviceKindLED, DeviceKindButton, DeviceKindCaptor,
-		DeviceKindSensor, DeviceKindPWM, DeviceKindServo, DeviceKindAnalog,
+	case DeviceKindRelay, DeviceKindLED, DeviceKindRGBLED, DeviceKindButton,
+		DeviceKindCaptor, DeviceKindPIR, DeviceKindSensor, DeviceKindPWM,
+		DeviceKindServo, DeviceKindAnalog, DeviceKindAnalogActuator,
+		DeviceKindMotor, DeviceKindStepper, DeviceKindBuzzer, DeviceKindDirectPin,
+		DeviceKindDistance, DeviceKindTemperature, DeviceKindDisplay,
+		DeviceKindExpander, DeviceKindIMU, DeviceKindADC, DeviceKindRFID,
 		DeviceKindValue, DeviceKindFunction:
 		return true
 	default:
@@ -67,13 +98,16 @@ const (
 type EventType string
 
 const (
-	EventSnapshot      EventType = "snapshot"
-	EventBoardUpdated  EventType = "board.updated"
-	EventDeviceUpdated EventType = "device.updated"
-	EventPinUpdated    EventType = "pin.updated"
-	EventValueUpdated  EventType = "value.updated"
-	EventFaultChanged  EventType = "fault.changed"
-	EventHeartbeat     EventType = "heartbeat"
+	EventSnapshot       EventType = "snapshot"
+	EventBoardUpdated   EventType = "board.updated"
+	EventBoardStarted   EventType = "board.started"
+	EventDeviceUpdated  EventType = "device.updated"
+	EventPinUpdated     EventType = "pin.updated"
+	EventValueUpdated   EventType = "value.updated"
+	EventFunctionCalled EventType = "function.called"
+	EventFaultChanged   EventType = "fault.changed"
+	EventTrace          EventType = "trace"
+	EventHeartbeat      EventType = "heartbeat"
 )
 
 // PinState holds the current state of a single pin on a board.
@@ -91,14 +125,15 @@ type PinState struct {
 
 // DeviceCapabilities defines how the UI/API may interact with a device.
 type DeviceCapabilities struct {
-	Readable   bool     `json:"readable"`
-	Writable   bool     `json:"writable"`
-	Pressable  bool     `json:"pressable"`
-	Toggleable bool     `json:"toggleable"`
-	Callable   bool     `json:"callable"`
-	MinValue   *float64 `json:"minValue,omitempty"`
-	MaxValue   *float64 `json:"maxValue,omitempty"`
-	Unit       string   `json:"unit,omitempty"`
+	Readable    bool     `json:"readable"`
+	Writable    bool     `json:"writable"`
+	Pressable   bool     `json:"pressable"`
+	Toggleable  bool     `json:"toggleable"`
+	Callable    bool     `json:"callable"`
+	Commandable bool     `json:"commandable"`
+	MinValue    *float64 `json:"minValue,omitempty"`
+	MaxValue    *float64 `json:"maxValue,omitempty"`
+	Unit        string   `json:"unit,omitempty"`
 }
 
 // DeviceState represents a registered or auto-discovered Gobot device on a board.
@@ -108,6 +143,7 @@ type DeviceState struct {
 	Name         string                 `json:"name"`
 	Label        string                 `json:"label"`
 	Kind         DeviceKind             `json:"kind"`
+	Group        DeviceGroup            `json:"group"`
 	Driver       string                 `json:"driver"`
 	Pins         []string               `json:"pins"`
 	ValueName    string                 `json:"valueName,omitempty"`
@@ -118,6 +154,13 @@ type DeviceState struct {
 	State        map[string]interface{} `json:"state"`
 	Capabilities DeviceCapabilities     `json:"capabilities"`
 	Labels       map[string]string      `json:"labels,omitempty"`
+	Wiring       Wiring                 `json:"wiring"`
+	Energised    bool                   `json:"energised"`
+	LoadPowered  bool                   `json:"loadPowered"`
+	ExpectedIdle int                    `json:"expectedIdleLevel"`
+	Warnings     []string               `json:"warnings,omitempty"`
+	Faults       []DeviceFault          `json:"faults,omitempty"`
+	Source       string                 `json:"source,omitempty"`
 	UpdatedAt    time.Time              `json:"updatedAt"`
 }
 

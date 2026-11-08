@@ -13,7 +13,11 @@ import (
 	"time"
 
 	hertz "github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/disaster37/gobot-simulate/internal/bus"
+	"github.com/disaster37/gobot-simulate/internal/scenario"
 	"github.com/disaster37/gobot-simulate/internal/state"
+	"github.com/disaster37/gobot-simulate/internal/topology"
+	"github.com/disaster37/gobot-simulate/internal/trace"
 )
 
 const maxRequestBodySize = 64 * 1024
@@ -51,18 +55,44 @@ type Backend interface {
 	ClientCount() int
 	Uptime() time.Duration
 	Version() string
+
+	CommandDevice(boardID, deviceID, action string, value *int) error
+	SetDeviceFault(boardID, deviceID, fault string) (state.DeviceState, error)
+	ClearDeviceFault(boardID, deviceID, fault string) (state.DeviceState, error)
+	ClearDeviceFaults(boardID, deviceID string) (state.DeviceState, error)
+	Step(boardID, name, status string, detail map[string]interface{}) error
+	Trace(boardID string, since uint64, kinds []string, target string) ([]trace.Record, error)
+	Waveform(boardID string, pins []string, from, to time.Time, maxPoints int) ([]trace.Series, error)
+	SubscribeTrace() <-chan trace.Record
+	UnsubscribeTrace(ch <-chan trace.Record)
+	Topology() (topology.Spec, []byte)
+	Scenarios() []scenario.Rule
+	SetScenarioEnabled(id string, enabled bool) error
+	TriggerScenario(ctx context.Context, id string) error
+	Buses(boardID string) ([]map[string]interface{}, error)
+	Chips(boardID string) ([]bus.ChipEntry, error)
+	FindChip(chipID string) (bus.ChipEntry, error)
+	SetChipField(boardID, chipID, field string, value interface{}) (bus.ChipEntry, error)
+	RawChip(boardID, chipID string, txn bus.Transaction) (bus.Response, error)
+	ChipValues(chipID string) (map[string]interface{}, error)
+	DigitalRead(boardID, pin string) (int, error)
+	AnalogRead(boardID, pin string) (int, error)
+	BindPinMode(boardID, pin, mode string) error
+	BoardLatency(boardID string) time.Duration
+	BoardFault(boardID string) error
 }
 
 // Config configures the HTTP server.
 type Config struct {
-	Addr        string
-	Port        int
-	UIEnabled   bool
-	CORSOrigins []string
-	MaxClients  int
-	AuthToken   string
-	Version     string
-	Assets      fs.FS
+	Addr         string
+	Port         int
+	UIEnabled    bool
+	CORSOrigins  []string
+	MaxClients   int
+	AuthToken    string
+	Version      string
+	ARESTEnabled bool
+	Assets       fs.FS
 }
 
 // Server wraps a Hertz engine and its lifecycle.
@@ -255,13 +285,37 @@ func (s *Server) registerRoutes(h *Hertz) {
 	v1.PATCH("/boards/:board/devices/:device", s.handlePatchDevice)
 	v1.POST("/boards/:board/devices/:device/press", s.handlePress)
 	v1.POST("/boards/:board/devices/:device/release", s.handleRelease)
+	v1.POST("/boards/:board/devices/:device/command", s.handleCommand)
+	v1.POST("/boards/:board/devices/:device/fault", s.handleSetDeviceFault)
+	v1.DELETE("/boards/:board/devices/:device/fault", s.handleClearDeviceFault)
 	v1.POST("/boards/:board/pins/:pin", s.handlePin)
 	v1.GET("/boards/:board/values/:name", s.handleGetValue)
 	v1.PUT("/boards/:board/values/:name", s.handleSetValue)
 	v1.POST("/boards/:board/functions/:name", s.handleFunction)
 	v1.POST("/boards/:board/fault", s.handleSetFault)
 	v1.DELETE("/boards/:board/fault", s.handleClearFault)
+	v1.GET("/boards/:board/trace", s.handleTrace)
+	v1.GET("/boards/:board/waveform", s.handleWaveform)
+	v1.POST("/boards/:board/steps", s.handleStep)
+	v1.GET("/boards/:board/buses", s.handleBuses)
+	v1.GET("/boards/:board/chips", s.handleChips)
+	v1.GET("/chips/:chip", s.handleChip)
+	v1.PATCH("/chips/:chip", s.handlePatchChip)
+	v1.POST("/chips/:chip/raw", s.handleRawChip)
+	v1.GET("/topology", s.handleTopology)
+	v1.GET("/topology/source", s.handleTopologySource)
+	v1.GET("/scenarios", s.handleScenarios)
+	v1.PATCH("/scenarios/:id", s.handlePatchScenario)
+	v1.POST("/scenarios/:id/trigger", s.handleTriggerScenario)
+	v1.GET("/boardprofiles", s.handleBoardProfiles)
 	v1.GET("/events", s.handleEvents)
+
+	if s.cfg.ARESTEnabled {
+		h.Any("/arest/:board/*action", s.handleAREST)
+		h.Any("/arest/:board", s.handleAREST)
+		h.Any("/v1/devices/:board/*action", s.handleParticle)
+		h.Any("/v1/devices/:board", s.handleParticle)
+	}
 
 	h.NoRoute(s.handleNoRoute)
 }

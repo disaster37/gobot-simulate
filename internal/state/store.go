@@ -51,6 +51,7 @@ type Board struct {
 	clk      clock.Clock
 	emit     func(Event)
 	rename   func(id, name string)
+	noise    atomic.Uint64
 }
 
 func newBoard(id, name, platform, port string, latency time.Duration, clk clock.Clock, emit func(Event), rename func(string, string)) *Board {
@@ -145,6 +146,10 @@ func (b *Board) SetConnected(connected bool) bool {
 	b.mu.Unlock()
 	if changed {
 		b.publishBoard(SourceSimulation)
+		if connected {
+			st := b.Snapshot()
+			b.emit(Event{Type: EventBoardStarted, Source: SourceSimulation, BoardID: st.ID, Board: &st})
+		}
 	}
 	return changed
 }
@@ -340,16 +345,24 @@ func (b *Board) SetInvertInitialPinState(pin string) {
 }
 
 // DigitalReadPin returns the pin state, creating it as an input if needed.
+// Device-level read faults (stuck, welded, noisy) are applied to the value a
+// driver observes; the stored command value is left untouched.
 func (b *Board) DigitalReadPin(pin string) PinState {
 	b.mu.Lock()
-	p, ok := b.st.Pins[pin]
+	raw, ok := b.st.Pins[pin]
+	p := raw
 	if !ok {
 		p = PinState{Pin: pin, Mode: PinModeInput, UpdatedAt: b.clk.Now()}
 		b.st.Pins[pin] = p
 		b.st.UpdatedAt = p.UpdatedAt
+		raw = p
 	}
+	devices := b.devicesForPinLocked(pin)
+	value, _ := effectiveDigital(raw, devices, b.noise.Add(1))
 	b.mu.Unlock()
 
+	p.DigitalValue = value
+	p.ByteValue = byte(value) //nolint:gosec // intentional width conversion
 	if !ok {
 		b.publishPin(p, nil, nil, p.DigitalValue, SourceHardwareCode)
 	}
@@ -367,15 +380,17 @@ func (b *Board) DigitalWritePin(pin string, val byte, setMode bool, mode PinMode
 	if setMode {
 		p.Mode = mode
 	}
-	p.DigitalValue = int(val)
-	p.ByteValue = val
+	b.noise.Add(1)
+	commanded := byte(writeFaulted(pin, int(val), b.devicesForPinLocked(pin))) //nolint:gosec // intentional width conversion
+	p.DigitalValue = int(commanded)
+	p.ByteValue = commanded
 	p.UpdatedAt = b.clk.Now()
 	b.st.Pins[pin] = p
 	b.st.UpdatedAt = p.UpdatedAt
 	devices := b.updateDevicesLocked(p)
 	b.mu.Unlock()
 
-	b.publishPin(p, devices, old.DigitalValue, int(val), source)
+	b.publishPin(p, devices, old.DigitalValue, int(commanded), source)
 	return p
 }
 
@@ -405,15 +420,17 @@ func (b *Board) byteWrite(pin string, val byte, mode PinMode, source EventSource
 		p.Pin = pin
 	}
 	p.Mode = mode
-	p.ByteValue = val
-	p.DigitalValue = int(val)
+	b.noise.Add(1)
+	commanded := byte(writeFaulted(pin, int(val), b.devicesForPinLocked(pin))) //nolint:gosec // intentional width conversion
+	p.ByteValue = commanded
+	p.DigitalValue = int(commanded)
 	p.UpdatedAt = b.clk.Now()
 	b.st.Pins[pin] = p
 	b.st.UpdatedAt = p.UpdatedAt
 	devices := b.updateDevicesLocked(p)
 	b.mu.Unlock()
 
-	b.publishPin(p, devices, int(old.ByteValue), int(val), source)
+	b.publishPin(p, devices, int(old.ByteValue), int(commanded), source)
 	return p
 }
 
@@ -454,7 +471,9 @@ func (b *Board) AnalogWritePin(pin string, val int, source EventSource) PinState
 	return p
 }
 
-// RegisterDevice upserts a device and returns the stored copy.
+// RegisterDevice upserts a device and returns the stored copy. A device
+// loaded from the topology file wins over later discovery/manual updates: the
+// declared fields are retained while omitted runtime metadata is filled in.
 func (b *Board) RegisterDevice(d DeviceState) DeviceState {
 	b.mu.Lock()
 	now := b.clk.Now()
@@ -463,11 +482,26 @@ func (b *Board) RegisterDevice(d DeviceState) DeviceState {
 	if d.State == nil {
 		d.State = make(map[string]interface{})
 	}
-	if d.Kind.Valid() && d.Capabilities == (DeviceCapabilities{}) {
-		d.Capabilities = DefaultCapabilities(d.Kind)
+	if d.Kind.Valid() {
+		if d.Group == "" {
+			d.Group = GroupForKind(d.Kind)
+		}
+		if d.Capabilities == (DeviceCapabilities{}) {
+			d.Capabilities = DefaultCapabilities(d.Kind)
+		}
 	}
+	if d.Wiring.IsZero() {
+		d.Wiring = defaultWiring(d.Kind, d.Inverted)
+	}
+	d.Wiring = d.Wiring.Normalized()
 	if d.Pins == nil {
 		d.Pins = []string{}
+	}
+	if existing, ok := b.st.Devices[d.ID]; ok && existing.Source == SourceTopology && d.Source != SourceTopology {
+		d = mergeDiscovered(existing, d)
+	}
+	if d.Source == "" {
+		d.Source = SourceRuntime
 	}
 	b.st.Devices[d.ID] = d
 	if d.Label != "" {
@@ -480,12 +514,169 @@ func (b *Board) RegisterDevice(d DeviceState) DeviceState {
 			b.st.Pins[pin] = p
 		}
 	}
+	b.deriveDeviceLocked(&d, b.firstPinForDeviceLocked(d))
+	b.st.Devices[d.ID] = d
 	b.st.UpdatedAt = now
 	stored := cloneDevice(d)
 	b.mu.Unlock()
 
 	b.publishDevice(stored, SourceSimulation)
 	return stored
+}
+
+// Source markers used to implement topology precedence.
+const (
+	SourceTopology  = "topology"
+	SourceRuntime   = "runtime"
+	SourceDiscovery = "discovery"
+)
+
+func defaultWiring(kind DeviceKind, inverted bool) Wiring {
+	w := Wiring{}.Normalized()
+	if inverted {
+		w.Drive = DriveActiveLow
+	}
+	switch kind {
+	case DeviceKindButton, DeviceKindCaptor, DeviceKindPIR:
+		w.Mechanism = MechanismMomentary
+		if inverted {
+			w.Pull = PullUp
+		}
+	default:
+		w.Mechanism = MechanismNone
+	}
+	return w
+}
+
+func mergeDiscovered(existing, discovered DeviceState) DeviceState {
+	merged := existing
+	merged.UpdatedAt = discovered.UpdatedAt
+	if merged.Driver == "" {
+		merged.Driver = discovered.Driver
+	}
+	if merged.Name == "" {
+		merged.Name = discovered.Name
+	}
+	if merged.Label == "" {
+		merged.Label = discovered.Label
+	}
+	if len(merged.Pins) == 0 {
+		merged.Pins = discovered.Pins
+	}
+	if merged.State == nil {
+		merged.State = discovered.State
+	}
+	if merged.Capabilities == (DeviceCapabilities{}) {
+		merged.Capabilities = discovered.Capabilities
+	}
+	return merged
+}
+
+func (b *Board) firstPinForDeviceLocked(d DeviceState) *PinState {
+	if len(d.Pins) == 0 {
+		return nil
+	}
+	if p, ok := b.st.Pins[d.Pins[0]]; ok {
+		return &p
+	}
+	return nil
+}
+
+func (b *Board) devicesForPinLocked(pin string) []DeviceState {
+	var out []DeviceState
+	for _, d := range b.st.Devices {
+		if containsString(d.Pins, pin) {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+func (b *Board) deriveDeviceLocked(d *DeviceState, pin *PinState) {
+	d.Wiring = d.Wiring.Normalized()
+	level := 0
+	if pin != nil {
+		level = pin.DigitalValue
+	} else if len(d.Pins) == 0 {
+		if v, ok := d.State["pinValue"].(int); ok {
+			level = v
+		}
+	}
+	d.Energised = d.Wiring.Energised(level)
+	d.LoadPowered = d.Wiring.LoadPowered(level)
+	if d.HasFault(FaultOpenCoil) || d.HasFault(FaultDisconnected) {
+		d.LoadPowered = false
+	}
+	d.ExpectedIdle = d.Wiring.ExpectedIdleLevel()
+	d.Warnings = WiringWarnings(*d, pin)
+}
+
+// SetDeviceFault injects a device fault and returns the updated device.
+func (b *Board) SetDeviceFault(deviceID string, fault DeviceFault) (DeviceState, error) {
+	if !fault.Valid() {
+		return DeviceState{}, fmt.Errorf("%w: %q", ErrInvalidFault, fault)
+	}
+	b.mu.Lock()
+	d, ok := b.st.Devices[deviceID]
+	if !ok {
+		b.mu.Unlock()
+		return DeviceState{}, fmt.Errorf("%w: %s", ErrDeviceNotFound, deviceID)
+	}
+	if !d.HasFault(fault) {
+		d.Faults = append(d.Faults, fault)
+	}
+	d.UpdatedAt = b.clk.Now()
+	b.deriveDeviceLocked(&d, b.firstPinForDeviceLocked(d))
+	b.st.Devices[deviceID] = d
+	b.st.UpdatedAt = d.UpdatedAt
+	stored := cloneDevice(d)
+	b.mu.Unlock()
+	b.publishDevice(stored, SourceSimulation)
+	return stored, nil
+}
+
+// ClearDeviceFault removes one device fault.
+func (b *Board) ClearDeviceFault(deviceID string, fault DeviceFault) (DeviceState, error) {
+	b.mu.Lock()
+	d, ok := b.st.Devices[deviceID]
+	if !ok {
+		b.mu.Unlock()
+		return DeviceState{}, fmt.Errorf("%w: %s", ErrDeviceNotFound, deviceID)
+	}
+	out := d.Faults[:0]
+	for _, candidate := range d.Faults {
+		if candidate != fault {
+			out = append(out, candidate)
+		}
+	}
+	d.Faults = out
+	d.UpdatedAt = b.clk.Now()
+	b.deriveDeviceLocked(&d, b.firstPinForDeviceLocked(d))
+	b.st.Devices[deviceID] = d
+	b.st.UpdatedAt = d.UpdatedAt
+	stored := cloneDevice(d)
+	b.mu.Unlock()
+	b.publishDevice(stored, SourceSimulation)
+	return stored, nil
+}
+
+// ClearDeviceFaults removes every device fault.
+func (b *Board) ClearDeviceFaults(deviceID string) (DeviceState, error) {
+	b.mu.Lock()
+	d, ok := b.st.Devices[deviceID]
+	if !ok {
+		b.mu.Unlock()
+		return DeviceState{}, fmt.Errorf("%w: %s", ErrDeviceNotFound, deviceID)
+	}
+	d.Faults = nil
+	d.UpdatedAt = b.clk.Now()
+	b.deriveDeviceLocked(&d, b.firstPinForDeviceLocked(d))
+	b.st.Devices[deviceID] = d
+	b.st.UpdatedAt = d.UpdatedAt
+	stored := cloneDevice(d)
+	b.mu.Unlock()
+	b.publishDevice(stored, SourceSimulation)
+	return stored, nil
 }
 
 // HasDevice reports whether a device ID is already registered.
@@ -606,6 +797,14 @@ func (b *Board) CallFunction(name, parameters string, source EventSource) (Extra
 	devices := b.updateFunctionDevicesLocked(fn)
 	b.mu.Unlock()
 
+	b.emit(Event{
+		Type:      EventFunctionCalled,
+		Source:    source,
+		BoardID:   b.st.ID,
+		ValueName: name,
+		NewValue:  fn.ReturnCode,
+		OldValue:  parameters,
+	})
 	for _, d := range devices {
 		b.publishDevice(d, source)
 	}
@@ -623,30 +822,33 @@ func (b *Board) updateDevicesLocked(pin PinState) []DeviceState {
 			d.State = make(map[string]interface{})
 		}
 		switch d.Kind {
-		case DeviceKindRelay, DeviceKindLED:
+		case DeviceKindRelay, DeviceKindLED, DeviceKindRGBLED:
 			d.Active = pin.DigitalValue == 1
 			if d.Inverted {
 				d.Active = pin.DigitalValue == 0
 			}
 			d.State["pinValue"] = pin.DigitalValue
 			d.State["active"] = d.Active
-		case DeviceKindButton, DeviceKindCaptor:
+		case DeviceKindButton, DeviceKindCaptor, DeviceKindPIR:
 			d.Active = pin.DigitalValue != d.DefaultState
 			d.State["pinValue"] = pin.DigitalValue
 			d.State["defaultState"] = d.DefaultState
-		case DeviceKindPWM:
+		case DeviceKindPWM, DeviceKindDirectPin:
 			d.State["byteValue"] = int(pin.ByteValue)
 			d.State["pinValue"] = pin.DigitalValue
-		case DeviceKindServo:
+		case DeviceKindServo, DeviceKindMotor, DeviceKindStepper:
 			d.State["angle"] = int(pin.ByteValue)
 			d.State["pinValue"] = pin.DigitalValue
-		case DeviceKindAnalog, DeviceKindSensor:
+		case DeviceKindAnalog, DeviceKindSensor, DeviceKindAnalogActuator,
+			DeviceKindTemperature, DeviceKindDistance, DeviceKindIMU, DeviceKindADC,
+			DeviceKindExpander, DeviceKindDisplay, DeviceKindRFID, DeviceKindBuzzer:
 			d.State["analogValue"] = pin.AnalogValue
 			d.State["value"] = float64(pin.AnalogValue)
 		case DeviceKindValue, DeviceKindFunction:
 			continue
 		}
 		d.UpdatedAt = now
+		b.deriveDeviceLocked(&d, &pin)
 		b.st.Devices[id] = d
 		out = append(out, cloneDevice(d))
 	}
@@ -727,18 +929,23 @@ func (b *Board) publishDevice(d DeviceState, source EventSource) {
 // DefaultCapabilities returns the interaction capabilities for a device kind.
 func DefaultCapabilities(kind DeviceKind) DeviceCapabilities {
 	switch kind {
-	case DeviceKindRelay, DeviceKindLED:
-		return DeviceCapabilities{Readable: true, Writable: true, Toggleable: true}
-	case DeviceKindButton, DeviceKindCaptor:
+	case DeviceKindRelay, DeviceKindLED, DeviceKindRGBLED:
+		return DeviceCapabilities{Readable: true, Writable: true, Toggleable: true, Commandable: true}
+	case DeviceKindButton, DeviceKindCaptor, DeviceKindPIR:
 		return DeviceCapabilities{Readable: true, Writable: true, Pressable: true, Toggleable: true}
-	case DeviceKindSensor:
+	case DeviceKindSensor, DeviceKindAnalog, DeviceKindTemperature, DeviceKindDistance,
+		DeviceKindIMU, DeviceKindADC, DeviceKindExpander, DeviceKindRFID:
 		return DeviceCapabilities{Readable: true, Writable: true, MinValue: floatPtr(0), MaxValue: floatPtr(1023)}
-	case DeviceKindPWM:
-		return DeviceCapabilities{Readable: true, Writable: true, MinValue: floatPtr(0), MaxValue: floatPtr(255)}
+	case DeviceKindPWM, DeviceKindDirectPin, DeviceKindBuzzer, DeviceKindAnalogActuator:
+		return DeviceCapabilities{Readable: true, Writable: true, Commandable: true, MinValue: floatPtr(0), MaxValue: floatPtr(255)}
 	case DeviceKindServo:
-		return DeviceCapabilities{Readable: true, Writable: true, MinValue: floatPtr(0), MaxValue: floatPtr(180), Unit: "deg"}
-	case DeviceKindAnalog:
-		return DeviceCapabilities{Readable: true, Writable: true, MinValue: floatPtr(0), MaxValue: floatPtr(1023)}
+		return DeviceCapabilities{Readable: true, Writable: true, Commandable: true, MinValue: floatPtr(0), MaxValue: floatPtr(180), Unit: "deg"}
+	case DeviceKindMotor:
+		return DeviceCapabilities{Readable: true, Writable: true, Commandable: true, MinValue: floatPtr(-255), MaxValue: floatPtr(255)}
+	case DeviceKindStepper:
+		return DeviceCapabilities{Readable: true, Writable: true, Commandable: true}
+	case DeviceKindDisplay:
+		return DeviceCapabilities{Readable: true, Writable: true, Commandable: true}
 	case DeviceKindValue:
 		return DeviceCapabilities{Readable: true, Writable: true}
 	case DeviceKindFunction:
@@ -817,6 +1024,12 @@ func cloneDevice(d DeviceState) DeviceState {
 		for k, v := range d.Labels {
 			out.Labels[k] = v
 		}
+	}
+	if d.Warnings != nil {
+		out.Warnings = append([]string(nil), d.Warnings...)
+	}
+	if d.Faults != nil {
+		out.Faults = append([]DeviceFault(nil), d.Faults...)
 	}
 	return out
 }

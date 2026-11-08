@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/disaster37/gobot-simulate/internal/bus"
+	"github.com/disaster37/gobot-simulate/internal/scenario"
 	"github.com/disaster37/gobot-simulate/internal/state"
 )
 
@@ -173,12 +175,14 @@ func (s *Server) handlePatchDevice(_ context.Context, c *app.RequestContext) {
 
 func (s *Server) setDeviceActive(boardID string, device state.DeviceState, active bool) error {
 	switch device.Kind {
-	case state.DeviceKindRelay, state.DeviceKindLED, state.DeviceKindButton, state.DeviceKindCaptor:
+	case state.DeviceKindButton, state.DeviceKindCaptor:
 		if device.Active == active {
 			return nil
 		}
 		return s.backend.ToggleDevice(boardID, device.ID)
 	default:
+		// Outputs are observe-first: use POST .../command so the registered
+		// driver performs the change and keeps its cached state consistent.
 		return state.ErrReadOnly
 	}
 }
@@ -553,6 +557,14 @@ func classifyError(err error) (int, string) {
 		return http.StatusBadRequest, "INVALID_VALUE"
 	case errors.Is(err, state.ErrClientCap):
 		return http.StatusTooManyRequests, "TOO_MANY_CLIENTS"
+	case errors.Is(err, state.ErrInvalidFault):
+		return http.StatusBadRequest, "INVALID_FAULT"
+	case errors.Is(err, bus.ErrChipNotFound):
+		return http.StatusNotFound, "CHIP_NOT_FOUND"
+	case errors.Is(err, scenario.ErrRuleNotFound):
+		return http.StatusNotFound, "SCENARIO_NOT_FOUND"
+	case errors.Is(err, scenario.ErrRuleDisabled):
+		return http.StatusConflict, "SCENARIO_DISABLED"
 	default:
 		return http.StatusInternalServerError, "INTERNAL"
 	}

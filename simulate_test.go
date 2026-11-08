@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gobot.io/x/gobot/v2"
+	"gobot.io/x/gobot/v2/drivers/gpio"
 )
 
 type legacyMockPlateform interface {
@@ -329,6 +330,11 @@ func TestSimulatorMutationAPI(t *testing.T) {
 		ID: "distance", Kind: DeviceKindValue, ValueName: "distance",
 	})
 	require.NoError(t, err)
+
+	relayDriver := gpio.NewRelayDriver(board, "3")
+	require.NoError(t, relayDriver.Start())
+	relayDriver.SetName("relay_drum")
+	require.NoError(t, sim.AttachDevices("dfp", relayDriver))
 
 	require.NoError(t, sim.SetPWM("dfp", "5", 200, SourceUI))
 	require.NoError(t, sim.SetServo("dfp", "9", 180, SourceUI))

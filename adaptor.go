@@ -5,7 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/disaster37/gobot-simulate/internal/bus"
 	"github.com/disaster37/gobot-simulate/internal/state"
+	"github.com/disaster37/gobot-simulate/internal/trace"
 	"gobot.io/x/gobot/v2"
 	"gobot.io/x/gobot/v2/drivers/aio"
 	"gobot.io/x/gobot/v2/drivers/gpio"
@@ -59,10 +61,14 @@ type AdaptorConfig struct {
 type Adaptor struct {
 	sim   *Simulator
 	board *state.Board
+	buses *bus.Manager
 	id    string
 	mu    sync.RWMutex
 	name  string
 	port  string
+	pinMu sync.Mutex
+	pins  map[string]*simDigitalPin
+	pwm   map[string]*simPWMPin
 }
 
 // WithAdaptorID sets the adaptor/board identifier.
@@ -210,7 +216,10 @@ func (a *Adaptor) DigitalRead(pin string) (int, error) {
 	if err := a.board.FaultError(); err != nil {
 		return 0, err
 	}
-	return a.board.DigitalReadPin(pin).DigitalValue, nil
+	started := a.sim.clk.Now()
+	value := a.board.DigitalReadPin(pin).DigitalValue
+	a.recordTrace(trace.KindPinRead, pin, "read", value, state.SourceHardwareCode, started, nil)
+	return value, nil
 }
 
 // DigitalWrite writes a digital value and auto-creates unknown pins.
@@ -222,7 +231,10 @@ func (a *Adaptor) DigitalWrite(pin string, val byte) error {
 	if err := a.board.FaultError(); err != nil {
 		return err
 	}
+	started := a.sim.clk.Now()
 	a.board.DigitalWritePin(pin, val, true, state.PinModeOutput, state.SourceHardwareCode)
+	a.recordTrace(trace.KindPinWrite, pin, "write", int(val), state.SourceHardwareCode, started, nil)
+	a.afterPinWrite(pin, int(val))
 	return nil
 }
 
@@ -235,7 +247,9 @@ func (a *Adaptor) PwmWrite(pin string, val byte) error {
 	if err := a.board.FaultError(); err != nil {
 		return err
 	}
+	started := a.sim.clk.Now()
 	a.board.PwmWritePin(pin, val, state.SourceHardwareCode)
+	a.recordTrace(trace.KindPWM, pin, "pwm", int(val), state.SourceHardwareCode, started, nil)
 	return nil
 }
 
@@ -248,7 +262,9 @@ func (a *Adaptor) ServoWrite(pin string, val byte) error {
 	if err := a.board.FaultError(); err != nil {
 		return err
 	}
+	started := a.sim.clk.Now()
 	a.board.ServoWritePin(pin, val, state.SourceHardwareCode)
+	a.recordTrace(trace.KindServo, pin, "servo", int(val), state.SourceHardwareCode, started, nil)
 	return nil
 }
 
@@ -261,7 +277,10 @@ func (a *Adaptor) AnalogRead(pin string) (int, error) {
 	if err := a.board.FaultError(); err != nil {
 		return 0, err
 	}
-	return a.board.AnalogReadPin(pin).AnalogValue, nil
+	started := a.sim.clk.Now()
+	value := a.board.AnalogReadPin(pin).AnalogValue
+	a.recordTrace(trace.KindAnalog, pin, "read", value, state.SourceHardwareCode, started, nil)
+	return value, nil
 }
 
 // AnalogWrite writes an analog pin value.
@@ -270,7 +289,9 @@ func (a *Adaptor) AnalogWrite(pin string, val int) error {
 	if err := a.board.FaultError(); err != nil {
 		return err
 	}
+	started := a.sim.clk.Now()
 	a.board.AnalogWritePin(pin, val, state.SourceHardwareCode)
+	a.recordTrace(trace.KindAnalog, pin, "write", val, state.SourceHardwareCode, started, nil)
 	return nil
 }
 
@@ -282,14 +303,18 @@ func (a *Adaptor) ValueRead(name string) (interface{}, error) {
 	if err := a.board.FaultError(); err != nil {
 		return nil, err
 	}
+	started := a.sim.clk.Now()
 	value, ok := a.board.Value(name)
 	if !ok {
+		a.recordTrace(trace.KindValueRead, name, "read", nil, state.SourceHardwareCode, started, nil)
 		return nil, nil
 	}
+	a.recordTrace(trace.KindValueRead, name, "read", value.Value, state.SourceHardwareCode, started, nil)
 	return value.Value, nil
 }
 
-// ValuesRead returns extra values seeded with {"test": 99}.
+// ValuesRead returns extra values seeded with {"test": 99} for MockPlateform
+// compatibility. The aREST HTTP surface intentionally does not expose it.
 func (a *Adaptor) ValuesRead() (map[string]interface{}, error) {
 	if hook := a.board.Hooks().ValuesRead; hook != nil {
 		return hook()
@@ -297,10 +322,12 @@ func (a *Adaptor) ValuesRead() (map[string]interface{}, error) {
 	if err := a.board.FaultError(); err != nil {
 		return nil, err
 	}
+	started := a.sim.clk.Now()
 	out := map[string]interface{}{"test": 99}
 	for name, value := range a.board.Values() {
 		out[name] = value.Value
 	}
+	a.recordTrace(trace.KindValueRead, "*", "values", out, state.SourceHardwareCode, started, nil)
 	return out, nil
 }
 
@@ -312,7 +339,9 @@ func (a *Adaptor) FunctionCall(name, parameters string) (int, error) {
 	if err := a.board.FaultError(); err != nil {
 		return 0, err
 	}
+	started := a.sim.clk.Now()
 	_, result := a.board.CallFunction(name, parameters, state.SourceHardwareCode)
+	a.recordTrace(trace.KindFunctionCall, name, parameters, result, state.SourceHardwareCode, started, nil)
 	return result, nil
 }
 
@@ -367,7 +396,9 @@ func (a *Adaptor) SetValueReadState(name string, value interface{}) {
 	if state.ValidateID(name) != nil {
 		return
 	}
+	started := a.sim.clk.Now()
 	a.board.SetValue(name, value, state.SourceSimulation)
+	a.recordTrace(trace.KindValueWrite, name, "write", value, state.SourceSimulation, started, nil)
 }
 
 // GetCallFunctionState returns the configured function return code.
@@ -388,7 +419,11 @@ func (a *Adaptor) SetCallFunctionState(name string, value int) {
 }
 
 // SetError injects or clears a board-wide fault.
-func (a *Adaptor) SetError(err error) { a.board.SetFault(err) }
+func (a *Adaptor) SetError(err error) {
+	started := a.sim.clk.Now()
+	a.board.SetFault(err)
+	a.recordTrace(trace.KindFault, "board", "fault", nil, state.SourceSimulation, started, err)
+}
 
 // TestReconnect overrides Reconnect.
 func (a *Adaptor) TestReconnect(f func() error) {

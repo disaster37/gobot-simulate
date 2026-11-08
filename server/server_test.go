@@ -12,6 +12,7 @@ import (
 	simulate "github.com/disaster37/gobot-simulate"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gobot.io/x/gobot/v2/drivers/gpio"
 )
 
 func newServerSim(t *testing.T, opts ...simulate.Option) *simulate.Simulator {
@@ -106,9 +107,18 @@ func TestRESTEndpoints(t *testing.T) {
 	require.Equal(t, http.StatusOK, device.Code)
 
 	patch := doRequest(sim, http.MethodPatch, "/api/v1/boards/dfp/devices/relay_drum", []byte(`{"active":true}`))
-	require.Equal(t, http.StatusOK, patch.Code, patch.Body.String())
+	assert.Equal(t, http.StatusUnprocessableEntity, patch.Code, patch.Body.String())
+
+	// Outputs are commanded through their registered driver.
+	simBoard := sim.Adaptor("dfp")
+	relay := gpio.NewRelayDriver(simBoard, "3")
+	require.NoError(t, relay.Start())
+	relay.SetName("relay_drum")
+	require.NoError(t, sim.AttachDevices("dfp", relay))
+	command := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/devices/relay_drum/command", []byte(`{"action":"on"}`))
+	require.Equal(t, http.StatusOK, command.Code, command.Body.String())
 	var patched simulate.DeviceState
-	require.NoError(t, json.Unmarshal(patch.Body.Bytes(), &patched))
+	require.NoError(t, json.Unmarshal(command.Body.Bytes(), &patched))
 	assert.True(t, patched.Active)
 	pin, err := sim.Pin("dfp", "3")
 	require.NoError(t, err)

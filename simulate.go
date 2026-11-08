@@ -8,15 +8,20 @@ import (
 	"sync"
 	"time"
 
+	"github.com/disaster37/gobot-simulate/internal/bus"
 	"github.com/disaster37/gobot-simulate/internal/clock"
+	"github.com/disaster37/gobot-simulate/internal/scenario"
 	"github.com/disaster37/gobot-simulate/internal/state"
+	"github.com/disaster37/gobot-simulate/internal/topology"
+	"github.com/disaster37/gobot-simulate/internal/trace"
 	"github.com/disaster37/gobot-simulate/server"
 	simweb "github.com/disaster37/gobot-simulate/webui"
 	"gobot.io/x/gobot/v2"
 )
 
-// Version is the simulator release version.
-const Version = "0.1.0"
+// Version is the simulator release version. It is intended to be replaced at
+// build time with -ldflags "-X github.com/disaster37/gobot-simulate.Version=...".
+var Version = "0.1.0-dev"
 
 var (
 	ErrBoardNotFound  = state.ErrBoardNotFound
@@ -45,6 +50,13 @@ type (
 	Event              = state.Event
 	ServerMetadata     = state.ServerMetadata
 	Snapshot           = state.Snapshot
+	Wiring             = state.Wiring
+	DeviceGroup        = state.DeviceGroup
+	DeviceFault        = state.DeviceFault
+	Drive              = state.Drive
+	Contact            = state.Contact
+	Mechanism          = state.Mechanism
+	Pull               = state.Pull
 )
 
 // Pin modes.
@@ -60,16 +72,58 @@ const (
 
 // Device kinds.
 const (
-	DeviceKindRelay    = state.DeviceKindRelay
-	DeviceKindLED      = state.DeviceKindLED
-	DeviceKindButton   = state.DeviceKindButton
-	DeviceKindCaptor   = state.DeviceKindCaptor
-	DeviceKindSensor   = state.DeviceKindSensor
-	DeviceKindPWM      = state.DeviceKindPWM
-	DeviceKindServo    = state.DeviceKindServo
-	DeviceKindAnalog   = state.DeviceKindAnalog
-	DeviceKindValue    = state.DeviceKindValue
-	DeviceKindFunction = state.DeviceKindFunction
+	DeviceKindRelay          = state.DeviceKindRelay
+	DeviceKindLED            = state.DeviceKindLED
+	DeviceKindRGBLED         = state.DeviceKindRGBLED
+	DeviceKindButton         = state.DeviceKindButton
+	DeviceKindCaptor         = state.DeviceKindCaptor
+	DeviceKindPIR            = state.DeviceKindPIR
+	DeviceKindSensor         = state.DeviceKindSensor
+	DeviceKindPWM            = state.DeviceKindPWM
+	DeviceKindServo          = state.DeviceKindServo
+	DeviceKindAnalog         = state.DeviceKindAnalog
+	DeviceKindAnalogActuator = state.DeviceKindAnalogActuator
+	DeviceKindMotor          = state.DeviceKindMotor
+	DeviceKindStepper        = state.DeviceKindStepper
+	DeviceKindBuzzer         = state.DeviceKindBuzzer
+	DeviceKindDirectPin      = state.DeviceKindDirectPin
+	DeviceKindDistance       = state.DeviceKindDistance
+	DeviceKindTemperature    = state.DeviceKindTemperature
+	DeviceKindDisplay        = state.DeviceKindDisplay
+	DeviceKindExpander       = state.DeviceKindExpander
+	DeviceKindIMU            = state.DeviceKindIMU
+	DeviceKindADC            = state.DeviceKindADC
+	DeviceKindRFID           = state.DeviceKindRFID
+	DeviceKindValue          = state.DeviceKindValue
+	DeviceKindFunction       = state.DeviceKindFunction
+)
+
+// Device groups and wiring values.
+const (
+	GroupInputs    = state.GroupInputs
+	GroupOutputs   = state.GroupOutputs
+	GroupActuators = state.GroupActuators
+	GroupSensors   = state.GroupSensors
+	GroupDisplays  = state.GroupDisplays
+	GroupExpanders = state.GroupExpanders
+	GroupPins      = state.GroupPins
+	GroupExtras    = state.GroupExtras
+
+	DriveActiveHigh = state.DriveActiveHigh
+	DriveActiveLow  = state.DriveActiveLow
+
+	ContactNO = state.ContactNO
+	ContactNC = state.ContactNC
+
+	MechanismNone      = state.MechanismNone
+	MechanismMomentary = state.MechanismMomentary
+	MechanismLatching  = state.MechanismLatching
+	MechanismSelector  = state.MechanismSelector
+
+	PullNone     = state.PullNone
+	PullUp       = state.PullUp
+	PullDown     = state.PullDown
+	PullExternal = state.PullExternal
 )
 
 // Event sources.
@@ -110,19 +164,35 @@ type DeviceSpec struct {
 	DefaultState *int
 	Labels       map[string]string
 	Capabilities *DeviceCapabilities
+	Wiring       state.Wiring
+	State        map[string]interface{}
+	Source       string
 }
 
 // Simulator owns a state store, event hub, and optional Hertz server.
 type Simulator struct {
-	cfg        Config
-	store      *state.Store
-	clk        clock.Clock
-	version    string
-	startedAt  time.Time
-	adaptorsMu sync.Mutex
-	adaptors   map[string]*Adaptor
-	srvMu      sync.RWMutex
-	srv        *server.Server
+	cfg           Config
+	store         *state.Store
+	clk           clock.Clock
+	traces        *trace.Store
+	version       string
+	startedAt     time.Time
+	adaptorsMu    sync.Mutex
+	adaptors      map[string]*Adaptor
+	driversMu     sync.RWMutex
+	drivers       map[string]map[string]gobot.Device
+	topologyMu    sync.RWMutex
+	topology      *topology.Loaded
+	scenarioMu    sync.RWMutex
+	scenarios     *scenario.Engine
+	loadErr       error
+	runtimeMu     sync.Mutex
+	runtimeCtx    context.Context
+	runtimeCancel context.CancelFunc
+	runtimeOnce   sync.Once
+	running       bool
+	srvMu         sync.RWMutex
+	srv           *server.Server
 }
 
 // New creates a simulator with optional configuration.
@@ -132,6 +202,7 @@ func New(opts ...Option) *Simulator {
 		clk:       clock.RealClock{},
 		version:   Version,
 		adaptors:  make(map[string]*Adaptor),
+		drivers:   make(map[string]map[string]gobot.Device),
 		startedAt: time.Now(),
 	}
 	for _, opt := range opts {
@@ -140,6 +211,10 @@ func New(opts ...Option) *Simulator {
 	s.cfg = normalizeConfig(s.cfg)
 	s.startedAt = s.clk.Now()
 	s.store = state.NewStore(s.version, s.cfg.EventBuffer, s.clk)
+	s.traces = trace.New(s.cfg.TraceBuffer, s.clk)
+	if s.cfg.Topology != "" {
+		s.loadErr = s.LoadTopologyFile(s.cfg.Topology)
+	}
 	return s
 }
 
@@ -185,6 +260,15 @@ func WithLatency(d time.Duration) Option { return func(s *Simulator) { s.cfg.Lat
 // WithAuthToken enables bearer-token authentication.
 func WithAuthToken(token string) Option { return func(s *Simulator) { s.cfg.AuthToken = token } }
 
+// WithTraceBuffer sets the bounded I/O trace ring size.
+func WithTraceBuffer(size int) Option { return func(s *Simulator) { s.cfg.TraceBuffer = size } }
+
+// WithTopology sets a topology file loaded during New.
+func WithTopology(path string) Option { return func(s *Simulator) { s.cfg.Topology = path } }
+
+// WithARESTEnabled controls the aREST HTTP emulation surface.
+func WithARESTEnabled(enabled bool) Option { return func(s *Simulator) { s.cfg.AREST = enabled } }
+
 // Adaptor creates or returns the adaptor for idOrName.
 func (s *Simulator) Adaptor(idOrName string, opts ...AdaptorOption) *Adaptor {
 	cfg := AdaptorConfig{ID: idOrName, Name: idOrName}
@@ -220,7 +304,16 @@ func (s *Simulator) Adaptor(idOrName string, opts ...AdaptorOption) *Adaptor {
 		cfg.ID = "simulator"
 		board, _ = s.store.RegisterBoard(cfg.ID, cfg.Name, cfg.Platform, cfg.Port, cfg.Latency)
 	}
-	a := &Adaptor{sim: s, board: board, id: cfg.ID, name: cfg.Name, port: cfg.Port}
+	a := &Adaptor{
+		sim:   s,
+		board: board,
+		buses: bus.NewManager(board.ID(), s.clk, s.traces),
+		id:    cfg.ID,
+		name:  cfg.Name,
+		port:  cfg.Port,
+		pins:  make(map[string]*simDigitalPin),
+		pwm:   make(map[string]*simPWMPin),
+	}
 	s.adaptors[cfg.ID] = a
 	s.adaptorsMu.Unlock()
 
@@ -293,7 +386,12 @@ func (s *Simulator) RegisterDevice(boardID string, spec DeviceSpec) (DeviceState
 		DefaultState: defaultState,
 		Capabilities: caps,
 		Labels:       spec.Labels,
-		State:        make(map[string]interface{}),
+		Wiring:       spec.Wiring,
+		State:        spec.State,
+		Source:       spec.Source,
+	}
+	if d.State == nil {
+		d.State = make(map[string]interface{})
 	}
 	return board.RegisterDevice(d), nil
 }
@@ -351,31 +449,46 @@ func (s *Simulator) SetDigital(boardID, pin string, val int, source EventSource)
 	if val < 0 || val > 255 {
 		return fmt.Errorf("%w: digital value %d must be between 0 and 255", ErrInvalidValue, val)
 	}
-	return s.store.SetDigital(boardID, pin, val, source)
+	started := s.clk.Now()
+	err := s.store.SetDigital(boardID, pin, val, source)
+	s.recordAPI(trace.KindPinWrite, boardID, pin, "write", val, source, started, err)
+	return err
 }
 
 // PressButton presses a button or captor.
 func (s *Simulator) PressButton(boardID, deviceID string) error {
-	if err := state.ValidateIdentifier("device", deviceID); err != nil {
-		return err
-	}
-	return s.store.PressButton(boardID, deviceID)
+	return s.deviceAction(boardID, deviceID, "press", s.store.PressButton)
 }
 
 // ReleaseButton releases a button or captor.
 func (s *Simulator) ReleaseButton(boardID, deviceID string) error {
-	if err := state.ValidateIdentifier("device", deviceID); err != nil {
-		return err
-	}
-	return s.store.ReleaseButton(boardID, deviceID)
+	return s.deviceAction(boardID, deviceID, "release", s.store.ReleaseButton)
 }
 
-// ToggleDevice toggles a toggleable device.
+// ToggleDevice toggles a device. Outputs are toggled through their attached
+// driver so cached driver state stays consistent; inputs flip their pin.
 func (s *Simulator) ToggleDevice(boardID, deviceID string) error {
 	if err := state.ValidateIdentifier("device", deviceID); err != nil {
 		return err
 	}
-	return s.store.ToggleDevice(boardID, deviceID)
+	device, err := s.store.Device(boardID, deviceID)
+	if err != nil {
+		return err
+	}
+	if state.IsOutput(device.Kind) {
+		return s.CommandDevice(boardID, deviceID, "toggle", nil)
+	}
+	return s.deviceAction(boardID, deviceID, "toggle", s.store.ToggleDevice)
+}
+
+func (s *Simulator) deviceAction(boardID, deviceID, operation string, fn func(string, string) error) error {
+	if err := state.ValidateIdentifier("device", deviceID); err != nil {
+		return err
+	}
+	started := s.clk.Now()
+	err := fn(boardID, deviceID)
+	s.recordAPI(trace.KindDriverEvent, boardID, deviceID, operation, nil, SourceUI, started, err)
+	return err
 }
 
 // SetPWM writes a PWM value.
@@ -383,7 +496,10 @@ func (s *Simulator) SetPWM(boardID, pin string, val byte, source EventSource) er
 	if err := state.ValidateIdentifier("pin", pin); err != nil {
 		return err
 	}
-	return s.store.SetPWM(boardID, pin, val, source)
+	started := s.clk.Now()
+	err := s.store.SetPWM(boardID, pin, val, source)
+	s.recordAPI(trace.KindPWM, boardID, pin, "pwm", int(val), source, started, err)
+	return err
 }
 
 // SetServo writes a servo angle.
@@ -391,7 +507,10 @@ func (s *Simulator) SetServo(boardID, pin string, angle byte, source EventSource
 	if err := state.ValidateIdentifier("pin", pin); err != nil {
 		return err
 	}
-	return s.store.SetServo(boardID, pin, angle, source)
+	started := s.clk.Now()
+	err := s.store.SetServo(boardID, pin, angle, source)
+	s.recordAPI(trace.KindServo, boardID, pin, "servo", int(angle), source, started, err)
+	return err
 }
 
 // SetAnalog writes an analog value.
@@ -399,7 +518,10 @@ func (s *Simulator) SetAnalog(boardID, pin string, val int, source EventSource) 
 	if err := state.ValidateIdentifier("pin", pin); err != nil {
 		return err
 	}
-	return s.store.SetAnalog(boardID, pin, val, source)
+	started := s.clk.Now()
+	err := s.store.SetAnalog(boardID, pin, val, source)
+	s.recordAPI(trace.KindAnalog, boardID, pin, "write", val, source, started, err)
+	return err
 }
 
 // SetValue stores an extra value.
@@ -407,7 +529,10 @@ func (s *Simulator) SetValue(boardID, name string, val interface{}, source Event
 	if err := state.ValidateIdentifier("value", name); err != nil {
 		return err
 	}
-	return s.store.SetValue(boardID, name, val, source)
+	started := s.clk.Now()
+	err := s.store.SetValue(boardID, name, val, source)
+	s.recordAPI(trace.KindValueWrite, boardID, name, "write", val, source, started, err)
+	return err
 }
 
 // CallFunction invokes an extra function.
@@ -415,7 +540,29 @@ func (s *Simulator) CallFunction(boardID, name, params string, source EventSourc
 	if err := state.ValidateIdentifier("function", name); err != nil {
 		return 0, err
 	}
-	return s.store.CallFunction(boardID, name, params, source)
+	started := s.clk.Now()
+	result, err := s.store.CallFunction(boardID, name, params, source)
+	s.recordAPI(trace.KindFunctionCall, boardID, name, params, result, source, started, err)
+	return result, err
+}
+
+func (s *Simulator) recordAPI(kind trace.Kind, boardID, target, operation string, value interface{}, source EventSource, started time.Time, err error) {
+	if s.traces == nil {
+		return
+	}
+	rec := trace.Record{
+		BoardID:    boardID,
+		Kind:       kind,
+		Target:     target,
+		Operation:  operation,
+		Value:      value,
+		Source:     source,
+		DurationNs: s.clk.Since(started).Nanoseconds(),
+	}
+	if err != nil {
+		rec.Error = err.Error()
+	}
+	s.traces.Append(rec)
 }
 
 // SetFunctionCode configures a function's mocked return code.
@@ -451,8 +598,36 @@ func (s *Simulator) DroppedEvents() uint64 { return s.store.DroppedEvents() }
 // CurrentSeq returns the current event sequence.
 func (s *Simulator) CurrentSeq() uint64 { return s.store.CurrentSeq() }
 
+// ARESTBaseURL returns the aREST base URL for one board.
+func (s *Simulator) ARESTBaseURL(boardID string) string {
+	base := s.URL()
+	if base == "" {
+		return ""
+	}
+	return base + "/arest/" + boardID
+}
+
+// Embedded loads configuration (including SIMULATE_TOPOLOGY), starts the HTTP
+// server with the embedded UI and returns a ready simulator. Hosts that also
+// run gobot robots should stop the robots first, then call Stop, so no driver
+// writes race server shutdown.
+func Embedded(cfg Config) (*Simulator, error) {
+	if err := cfg.Validate(); err != nil {
+		return nil, err
+	}
+	sim := New(WithConfig(cfg))
+	if err := sim.Start(context.Background()); err != nil {
+		return nil, err
+	}
+	return sim, nil
+}
+
 // Start starts the HTTP server without blocking.
 func (s *Simulator) Start(ctx context.Context) error {
+	if s.loadErr != nil {
+		return s.loadErr
+	}
+	s.startRuntime(ctx)
 	srv, err := s.ensureServer()
 	if err != nil {
 		return err
@@ -471,6 +646,16 @@ func (s *Simulator) Serve(ctx context.Context) error {
 
 // Stop gracefully shuts down the HTTP server.
 func (s *Simulator) Stop(ctx context.Context) error {
+	s.runtimeMu.Lock()
+	if s.runtimeCancel != nil {
+		s.runtimeCancel()
+		s.runtimeCancel = nil
+	}
+	s.running = false
+	s.runtimeMu.Unlock()
+	if scenarios := s.currentScenarios(); scenarios != nil {
+		scenarios.Stop()
+	}
 	srv := s.currentServer()
 	if srv == nil {
 		return nil
@@ -510,14 +695,15 @@ func (s *Simulator) ensureServer() (*server.Server, error) {
 		return s.srv, nil
 	}
 	srv, err := server.New(s, server.Config{
-		Addr:        s.cfg.Addr,
-		Port:        s.cfg.Port,
-		UIEnabled:   s.cfg.UIEnabled,
-		CORSOrigins: s.cfg.CORSOrigins,
-		MaxClients:  s.cfg.MaxClients,
-		AuthToken:   s.cfg.AuthToken,
-		Version:     s.version,
-		Assets:      simweb.DistFS(),
+		Addr:         s.cfg.Addr,
+		Port:         s.cfg.Port,
+		UIEnabled:    s.cfg.UIEnabled,
+		CORSOrigins:  s.cfg.CORSOrigins,
+		MaxClients:   s.cfg.MaxClients,
+		AuthToken:    s.cfg.AuthToken,
+		Version:      s.version,
+		ARESTEnabled: s.cfg.AREST,
+		Assets:       simweb.DistFS(),
 	})
 	if err != nil {
 		return nil, err
@@ -618,6 +804,9 @@ func normalizeConfig(cfg Config) Config {
 	}
 	if cfg.EventBuffer < 16 {
 		cfg.EventBuffer = def.EventBuffer
+	}
+	if cfg.TraceBuffer < 16 {
+		cfg.TraceBuffer = def.TraceBuffer
 	}
 	if cfg.CORSOrigins == nil {
 		cfg.CORSOrigins = def.CORSOrigins
