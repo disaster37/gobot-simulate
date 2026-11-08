@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import ChipPanel from '../../../components/ChipPanel.vue'
-import DeviceGroup from '../../../components/DeviceGroup.vue'
-import FaultPanel from '../../../components/FaultPanel.vue'
-import PinMatrix from '../../../components/PinMatrix.vue'
-import { useSimulator } from '../../../composables/useSimulator'
-import type { DeviceGroup as Group, DeviceState } from '../../../types/simulator'
+import ChipPanel from '../../../../components/ChipPanel.vue'
+import DeviceGroup from '../../../../components/DeviceGroup.vue'
+import FaultPanel from '../../../../components/FaultPanel.vue'
+import PinMatrix from '../../../../components/PinMatrix.vue'
+import { useSimulator } from '../../../../composables/useSimulator'
+import type { DeviceGroup as Group, DeviceState } from '../../../../types/simulator'
 
-definePageMeta({ layout: 'simulator' })
 
 const route = useRoute()
 const sim = useSimulator()

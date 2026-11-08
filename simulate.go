@@ -501,6 +501,13 @@ func (s *Simulator) deviceAction(boardID, deviceID, operation string, fn func(st
 	started := s.clk.Now()
 	err := fn(boardID, deviceID)
 	s.recordAPI(trace.KindDriverEvent, boardID, deviceID, operation, nil, SourceUI, started, err)
+	if err == nil && (operation == "press" || operation == "release") {
+		if device, lookupErr := s.store.Device(boardID, deviceID); lookupErr == nil && len(device.Pins) > 0 {
+			if pin, pinErr := s.store.Pin(boardID, device.Pins[0]); pinErr == nil {
+				s.recordAPI(trace.KindPinWrite, boardID, device.Pins[0], "write", pin.DigitalValue, SourceUI, started, nil)
+			}
+		}
+	}
 	return err
 }
 

@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import TopologyView from '../../../../components/TopologyView.vue'
 import { useSimulator } from '../../../../composables/useSimulator'
 
-definePageMeta({ layout: 'simulator' })
 
 const route = useRoute()
 const sim = useSimulator()

@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import TimelineView from '../../../../components/TimelineView.vue'
 import { useSimulator } from '../../../../composables/useSimulator'
 
-definePageMeta({ layout: 'simulator' })
 
 const route = useRoute()
 const sim = useSimulator()

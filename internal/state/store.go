@@ -492,6 +492,11 @@ func (b *Board) RegisterDevice(d DeviceState) DeviceState {
 	}
 	if d.Wiring.IsZero() {
 		d.Wiring = defaultWiring(d.Kind, d.Inverted)
+		if IsInput(d.Kind) && len(d.Pins) > 0 {
+			if pin, ok := b.st.Pins[d.Pins[0]]; ok && pin.Pullup {
+				d.Wiring.Pull = PullUp
+			}
+		}
 	}
 	d.Wiring = d.Wiring.Normalized()
 	if d.Pins == nil {

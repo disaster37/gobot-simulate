@@ -13,6 +13,9 @@ test('dashboard renders boards and opens a board workbench', async ({ page }) =>
   expect(response?.status()).toBe(200)
   await expect(page.getByRole('link', { name: 'Gobot Simulator' })).toBeVisible()
   expect(pageErrors, `page errors: ${pageErrors.join('; ')}`).toEqual([])
+  await page
+    .waitForFunction(() => document.body.innerText.includes('Open board'), null, { timeout: 10_000 })
+    .catch(() => null)
 
   const boardLinks = page.getByRole('link', { name: 'Open board' })
   if ((await boardLinks.count()) === 0) {
@@ -24,11 +27,15 @@ test('dashboard renders boards and opens a board workbench', async ({ page }) =>
 
 test('pressing a button is visible on the I/O timeline', async ({ page }) => {
   await page.goto('/simulator')
+  await page
+    .waitForFunction(() => document.body.innerText.includes('Open board'), null, { timeout: 10_000 })
+    .catch(() => null)
   const boardLinks = page.getByRole('link', { name: 'Open board' })
   if ((await boardLinks.count()) === 0) {
     test.skip(true, 'the demo simulator is not running with boards')
   }
   await boardLinks.first().click()
+  await expect(page.getByText('Pin matrix')).toBeVisible()
 
   const press = page.getByRole('button', { name: 'Hold / Push' }).first()
   if ((await press.count()) === 0) {

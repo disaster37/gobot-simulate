@@ -12,7 +12,7 @@ const (
 	PackageManager  = "npm"
 	PnpmVersion     = "10"
 	NodeTestImage   = "node:24-alpine"
-	PlaywrightImage = "mcr.microsoft.com/playwright:v1.64.1-jammy"
+	PlaywrightImage = "mcr.microsoft.com/playwright:v1.65.0-jammy"
 )
 
 var DefaultLdflags = []string{"-s", "-w"}
