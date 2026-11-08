@@ -26,6 +26,7 @@ A model is listed as supported only when its driver-in-the-loop conformance case
 | `drv2605l` | *i2c.DRV2605LDriver | haptic mode and waveform sequence |
 | `ds18b20` | *onewire.DS18B20Driver | temperature, resolution and conversion delay |
 | `firmata` | *firmata.Adaptor | protocol handshake, digital and analog IO |
+| `firmata-tcp` | *firmata.TCPAdaptor | TCP transport handshake and digital IO |
 | `generic` | *i2c.Driver | raw register read/write round-trip |
 | `gpio-aip1640` | *gpio.AIP1640Driver | shift-register matrix buffer |
 | `gpio-button` | *gpio.ButtonDriver | polled press/release and default state |

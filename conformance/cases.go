@@ -1,6 +1,7 @@
 package conformance
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -74,6 +75,7 @@ var cases = []Case{
 	{Model: "ssd1306", Driver: "*i2c.SSD1306Driver", Summary: "command stream and framebuffer", Run: caseSSD1306},
 	{Model: "ble-generic", Driver: "*ble.BatteryDriver/*ble.DeviceInformationDriver", Summary: "GATT reads for battery and device information services", Run: caseBLE},
 	{Model: "firmata", Driver: "*firmata.Adaptor", Summary: "protocol handshake, digital and analog IO", Run: caseFirmata},
+	{Model: "firmata-tcp", Driver: "*firmata.TCPAdaptor", Summary: "TCP transport handshake and digital IO", Run: caseFirmataTCP},
 	{Model: "arest-http", Driver: "*arest.NewHTTPAdaptor", Summary: "HTTP digital, mode, value and function contract", Run: caseARESTHTTP},
 	{Model: "arest-serial", Driver: "*arest.NewSerialAdaptor", Summary: "serial line protocol digital, value and function contract", Run: caseARESTSerial},
 	{Model: "particle", Driver: "*particle.Adaptor", Summary: "cloud REST digital and analog emulation", Run: caseParticle},
@@ -327,6 +329,15 @@ func caseGenericI2C(env *Env) error {
 	}
 	if value != 0x42 {
 		return fmt.Errorf("generic register = 0x%02x, want 0x42", value)
+	}
+	if err := env.Sim.SetBusFault(env.Board, "i2c-1", "bus-nak"); err != nil {
+		return err
+	}
+	if _, err := driver.Read("1"); err == nil {
+		return fmt.Errorf("generic register read succeeded under bus-nak")
+	}
+	if err := env.Sim.ClearBusFault(env.Board, "i2c-1", "bus-nak"); err != nil {
+		return err
 	}
 	return nil
 }
@@ -745,6 +756,17 @@ func caseGroveAIO(env *Env) error {
 	}
 	if lightValue != 600 {
 		return fmt.Errorf("grove light = %v, want 600", lightValue)
+	}
+	temperature := aio.NewGroveTemperatureSensorDriver(env.Adaptor, "A3")
+	if startErr := temperature.Start(); startErr != nil {
+		return startErr
+	}
+	raw, err := temperature.ReadRaw()
+	if err != nil {
+		return err
+	}
+	if raw != 600 {
+		return fmt.Errorf("grove temperature raw = %d, want 600", raw)
 	}
 	return nil
 }
@@ -1472,6 +1494,38 @@ func caseAIP1640(env *Env) error {
 		return fmt.Errorf("aip1640 pixels = %v", snapshot.Pixels)
 	}
 	return nil
+}
+
+func caseFirmataTCP(env *Env) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	listener, err := env.Sim.FirmataTCP(ctx, env.Board, "127.0.0.1:0")
+	if err != nil {
+		return err
+	}
+	defer func() { _ = listener.Close() }()
+
+	adaptor := gobotFirmata.NewTCPAdaptor(listener.Addr().String())
+	if connectErr := adaptor.Connect(); connectErr != nil {
+		return connectErr
+	}
+	defer func() { _ = adaptor.Finalize() }()
+	if writeErr := adaptor.DigitalWrite("13", 1); writeErr != nil {
+		return writeErr
+	}
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) {
+		pin, pinErr := env.Sim.Pin(env.Board, "13")
+		if pinErr == nil && pin.DigitalValue == 1 {
+			return nil
+		}
+		time.Sleep(time.Millisecond)
+	}
+	pin, err := env.Sim.Pin(env.Board, "13")
+	if err != nil {
+		return err
+	}
+	return fmt.Errorf("firmata tcp pin = %d, want 1", pin.DigitalValue)
 }
 
 // CleanupHalter halts polled drivers after a case.
