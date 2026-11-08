@@ -145,6 +145,7 @@ type DeviceState struct {
 	Kind         DeviceKind             `json:"kind"`
 	Group        DeviceGroup            `json:"group"`
 	Driver       string                 `json:"driver"`
+	DisplayModel string                 `json:"displayModel,omitempty"`
 	Pins         []string               `json:"pins"`
 	ValueName    string                 `json:"valueName,omitempty"`
 	FunctionName string                 `json:"functionName,omitempty"`

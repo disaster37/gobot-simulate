@@ -80,6 +80,10 @@ Device kinds: `relay`, `led`, `rgb-led`, `button`, `captor`, `pir`, `sensor`,
 `direct-pin`, `distance`, `temperature`, `display`, `expander`, `imu`, `adc`,
 `rfid`, `value`, `function`.
 
+Display devices may set `displayModel` to `hd44780`, `max7219`, `tm1638`,
+`aip1640` or a bus display model; the simulator decodes the real pin protocol
+and exposes a renderable snapshot under `device.state.display`.
+
 Wiring fields: `drive` (`active-high`, `active-low`), `contact` (`no`, `nc`),
 `mechanism` (`none`, `momentary`, `latching`, `selector`), `pull` (`none`, `up`,
 `down`, `external`), `loadLabel`.

@@ -120,6 +120,7 @@ func deviceFromTopology(device topology.Device) DeviceSpec {
 		Name:         firstNonEmptyString(device.Name, device.ID),
 		Label:        firstNonEmptyString(device.Label, device.Name, device.ID),
 		Kind:         kind,
+		DisplayModel: device.DisplayModel,
 		Pin:          device.Pin,
 		Pins:         append([]string(nil), device.Pins...),
 		ValueName:    device.ValueName,

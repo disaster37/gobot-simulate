@@ -428,6 +428,9 @@ func (p *simPWMPin) SetDutyCycle(duty uint32) error {
 // HC-SR04 ultrasonic sensor emits an echo pulse on its echo pin when its
 // trigger pin rises; the pulse width encodes the measured distance.
 func (a *Adaptor) afterPinWrite(pin string, level int) {
+	if a.sim != nil {
+		a.sim.observeDisplayPin(a.board.ID(), pin, level)
+	}
 	if level == 0 {
 		return
 	}

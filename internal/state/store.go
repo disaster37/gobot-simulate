@@ -679,6 +679,28 @@ func (b *Board) ClearDeviceFaults(deviceID string) (DeviceState, error) {
 	return stored, nil
 }
 
+// SetDeviceStateField updates one runtime field of a device's state map.
+func (b *Board) SetDeviceStateField(deviceID, field string, value interface{}) (DeviceState, error) {
+	b.mu.Lock()
+	d, ok := b.st.Devices[deviceID]
+	if !ok {
+		b.mu.Unlock()
+		return DeviceState{}, fmt.Errorf("%w: %s", ErrDeviceNotFound, deviceID)
+	}
+	if d.State == nil {
+		d.State = make(map[string]interface{})
+	}
+	d.State[field] = value
+	d.UpdatedAt = b.clk.Now()
+	b.deriveDeviceLocked(&d, b.firstPinForDeviceLocked(d))
+	b.st.Devices[deviceID] = d
+	b.st.UpdatedAt = d.UpdatedAt
+	stored := cloneDevice(d)
+	b.mu.Unlock()
+	b.publishDevice(stored, SourceSimulation)
+	return stored, nil
+}
+
 // HasDevice reports whether a device ID is already registered.
 func (b *Board) HasDevice(id string) bool {
 	b.mu.RLock()

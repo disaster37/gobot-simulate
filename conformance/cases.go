@@ -7,6 +7,7 @@ import (
 
 	simulate "github.com/disaster37/gobot-simulate"
 	"github.com/disaster37/gobot-simulate/internal/bus"
+	"github.com/disaster37/gobot-simulate/internal/display"
 	"github.com/disaster37/gobot-simulate/internal/topology"
 	"github.com/sigurn/crc8"
 	"gobot.io/x/gobot/v2/drivers/aio"
@@ -59,6 +60,10 @@ var cases = []Case{
 	{Model: "jhd1313m1", Driver: "*i2c.JHD1313M1Driver", Summary: "character buffer and RGB backlight", Run: caseJHD1313M1},
 	{Model: "ssd1306-spi", Driver: "*spi.SSD1306Driver", Summary: "SPI command stream and framebuffer", Run: caseSSD1306SPI},
 	{Model: "ble-microbit", Driver: "*ble/microbit.LED/IOPin/Button/Temperature", Summary: "GATT LED matrix, pin config and notifications", Run: caseMicrobit},
+	{Model: "gpio-hd44780", Driver: "*gpio.HD44780Driver", Summary: "4-bit character display buffer", Run: caseHD44780},
+	{Model: "gpio-max7219", Driver: "*gpio.MAX7219Driver", Summary: "16-bit register stream and digit buffer", Run: caseMAX7219},
+	{Model: "gpio-tm1638", Driver: "*gpio.TM1638Driver", Summary: "shift-register display and LED buffer", Run: caseTM1638},
+	{Model: "gpio-aip1640", Driver: "*gpio.AIP1640Driver", Summary: "shift-register matrix buffer", Run: caseAIP1640},
 	{Model: "aio-analog-sensor", Driver: "*aio.AnalogSensorDriver", Summary: "analog value round-trip and scaling", Run: caseAnalogSensor},
 	{Model: "ds18b20", Driver: "*onewire.DS18B20Driver", Summary: "temperature, resolution and conversion delay", Run: caseDS18B20},
 	{Model: "generic", Driver: "*i2c.Driver", Summary: "raw register read/write round-trip", Run: caseGenericI2C},
@@ -76,8 +81,6 @@ var cases = []Case{
 
 var unsupported = []UnsupportedCase{
 	{Driver: "aio.ThermalZoneDriver", Rationale: "reads host sysfs thermal zones; host-dependent by design"},
-	{Driver: "gpio.HD44780", Rationale: "4/8-bit parallel display timing requires a pin-level protocol decoder; I2C JHD1313M1 and SSD1306 displays are supported"},
-	{Driver: "gpio.MAX7219/TM1638/AIP1640", Rationale: "bit-banged shift-register timing requires a pin-level protocol decoder; the generic display buffer remains available"},
 	{Driver: "i2c./spi.MFRC522", Rationale: "RFID tag/anticollision state machine not modelled; generic register-map fallback available"},
 	{Driver: "i2c.CCS811", Rationale: "firmware-mode application start and gas-baseline calibration state machine not modelled; generic register-map fallback available"},
 	{Driver: "i2c.GrovePi", Rationale: "GrovePi is an ATmega firmware protocol with per-command framing; generic register-map fallback available"},
@@ -1361,6 +1364,112 @@ func caseMicrobit(env *Env) error {
 		if err := driver.Start(); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func registerDisplay(env *Env, id, model string, pins []string) error {
+	_, err := env.Sim.RegisterDevice(env.Board, simulate.DeviceSpec{
+		ID: id, Kind: simulate.DeviceKindDisplay, DisplayModel: model, Pins: pins,
+	})
+	return err
+}
+
+func displaySnapshot(env *Env, id string) (display.Snapshot, error) {
+	device, err := env.Sim.Device(env.Board, id)
+	if err != nil {
+		return display.Snapshot{}, err
+	}
+	snapshot, ok := device.State["display"].(display.Snapshot)
+	if !ok {
+		return display.Snapshot{}, fmt.Errorf("device %s has no display snapshot", id)
+	}
+	return snapshot, nil
+}
+
+func caseHD44780(env *Env) error {
+	pins := []string{"4", "5", "9", "10", "11", "12"}
+	if err := registerDisplay(env, "lcd", "hd44780", pins); err != nil {
+		return err
+	}
+	driver := gpio.NewHD44780Driver(env.Adaptor, 16, 2, gpio.HD44780_4BITMODE, "4", "5",
+		gpio.HD44780DataPin{D4: "9", D5: "10", D6: "11", D7: "12"})
+	if err := driver.Start(); err != nil {
+		return err
+	}
+	if err := driver.Write("hello"); err != nil {
+		return err
+	}
+	snapshot, err := displaySnapshot(env, "lcd")
+	if err != nil {
+		return err
+	}
+	if !strings.Contains(strings.Join(snapshot.Lines, "\n"), "hello") {
+		return fmt.Errorf("hd44780 lines = %q, want hello", snapshot.Lines)
+	}
+	return nil
+}
+
+func caseMAX7219(env *Env) error {
+	if err := registerDisplay(env, "matrix", "max7219", []string{"6", "7", "8"}); err != nil {
+		return err
+	}
+	driver := gpio.NewMAX7219Driver(env.Adaptor, "6", "7", "8", 1)
+	if err := driver.Start(); err != nil {
+		return err
+	}
+	if err := driver.All(0x01, 0xFF); err != nil {
+		return err
+	}
+	snapshot, err := displaySnapshot(env, "matrix")
+	if err != nil {
+		return err
+	}
+	if len(snapshot.Pixels) == 0 || snapshot.Pixels[0] != 0xFF {
+		return fmt.Errorf("max7219 pixels = %v", snapshot.Pixels)
+	}
+	return nil
+}
+
+func caseTM1638(env *Env) error {
+	if err := registerDisplay(env, "tm", "tm1638", []string{"6", "7", "8"}); err != nil {
+		return err
+	}
+	driver := gpio.NewTM1638Driver(env.Adaptor, "6", "7", "8")
+	if err := driver.Start(); err != nil {
+		return err
+	}
+	if err := driver.SetDisplay([]byte{1, 2, 3, 4, 5, 6, 7, 8}); err != nil {
+		return err
+	}
+	snapshot, err := displaySnapshot(env, "tm")
+	if err != nil {
+		return err
+	}
+	if len(snapshot.Pixels) < 8 || snapshot.Pixels[0] != 1 {
+		return fmt.Errorf("tm1638 pixels = %v", snapshot.Pixels)
+	}
+	return nil
+}
+
+func caseAIP1640(env *Env) error {
+	if err := registerDisplay(env, "aip", "aip1640", []string{"6", "7"}); err != nil {
+		return err
+	}
+	driver := gpio.NewAIP1640Driver(env.Adaptor, "6", "7")
+	if err := driver.Start(); err != nil {
+		return err
+	}
+	driver.DrawMatrix([8]byte{0xFF, 1, 2, 3, 4, 5, 6, 7})
+	if err := driver.Display(); err != nil {
+		return err
+	}
+	snapshot, err := displaySnapshot(env, "aip")
+	if err != nil {
+		return err
+	}
+	if len(snapshot.Pixels) < 8 || snapshot.Pixels[7] != 0xFF {
+		return fmt.Errorf("aip1640 pixels = %v", snapshot.Pixels)
 	}
 	return nil
 }

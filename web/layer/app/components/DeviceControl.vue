@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useSimulator } from '../composables/useSimulator'
-import type { DeviceFault, DeviceState } from '../types/simulator'
+import type { DeviceFault, DeviceState, DisplaySnapshot } from '../types/simulator'
+import DisplayView from './DisplayView.vue'
 import WiringBadges from './WiringBadges.vue'
 
 const props = defineProps<{ boardId: string; device: DeviceState }>()
@@ -53,6 +54,13 @@ const warnings = computed(() =>
   (props.device.warnings ?? []).filter((warning) => warning.startsWith('WIRING_MISMATCH')),
 )
 const pinLevel = computed(() => Number(props.device.state.pinValue ?? 0))
+const displaySnapshot = computed(() => {
+  const value = props.device.state.display
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+  return value as DisplaySnapshot
+})
 
 watch(
   () => props.device,
@@ -270,8 +278,9 @@ function commandLabel(): string {
       </p>
     </div>
 
-    <div v-else-if="isDisplay" class="mt-4 text-xs text-muted">
-      {{ device.state.text || device.state.line || 'Display content is available in the bus chip panel.' }}
+    <div v-else-if="isDisplay" class="mt-4">
+      <DisplayView v-if="displaySnapshot" :display="displaySnapshot" :zoom="3" />
+      <p v-else class="text-xs text-muted">Waiting for display data…</p>
     </div>
 
     <div v-else-if="isValue" class="mt-4 space-y-3">

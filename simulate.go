@@ -156,6 +156,7 @@ type DeviceSpec struct {
 	Name         string
 	Label        string
 	Kind         DeviceKind
+	DisplayModel string
 	Pin          string
 	Pins         []string
 	ValueName    string
@@ -185,6 +186,8 @@ type Simulator struct {
 	topology      *topology.Loaded
 	scenarioMu    sync.RWMutex
 	scenarios     *scenario.Engine
+	displayMu     sync.RWMutex
+	displays      map[string]map[string]displayBinding
 	loadErr       error
 	runtimeMu     sync.Mutex
 	runtimeCtx    context.Context
@@ -203,6 +206,7 @@ func New(opts ...Option) *Simulator {
 		version:   Version,
 		adaptors:  make(map[string]*Adaptor),
 		drivers:   make(map[string]map[string]gobot.Device),
+		displays:  make(map[string]map[string]displayBinding),
 		startedAt: time.Now(),
 	}
 	for _, opt := range opts {
@@ -379,6 +383,7 @@ func (s *Simulator) RegisterDevice(boardID string, spec DeviceSpec) (DeviceState
 		Name:         name,
 		Label:        label,
 		Kind:         kind,
+		DisplayModel: spec.DisplayModel,
 		Pins:         devicePins(spec),
 		ValueName:    spec.ValueName,
 		FunctionName: spec.FunctionName,
@@ -393,7 +398,9 @@ func (s *Simulator) RegisterDevice(boardID string, spec DeviceSpec) (DeviceState
 	if d.State == nil {
 		d.State = make(map[string]interface{})
 	}
-	return board.RegisterDevice(d), nil
+	stored := board.RegisterDevice(d)
+	s.attachDisplay(board.ID(), stored)
+	return stored, nil
 }
 
 // BindPin binds a pin label and mode.

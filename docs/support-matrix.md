@@ -27,19 +27,23 @@ A model is listed as supported only when its driver-in-the-loop conformance case
 | `ds18b20` | *onewire.DS18B20Driver | temperature, resolution and conversion delay |
 | `firmata` | *firmata.Adaptor | protocol handshake, digital and analog IO |
 | `generic` | *i2c.Driver | raw register read/write round-trip |
+| `gpio-aip1640` | *gpio.AIP1640Driver | shift-register matrix buffer |
 | `gpio-button` | *gpio.ButtonDriver | polled press/release and default state |
 | `gpio-buzzer` | *gpio.BuzzerDriver | On/Off and state |
 | `gpio-direct-pin` | *gpio.DirectPinDriver | raw digital read/write |
 | `gpio-easy-driver` | *gpio.EasyDriver | enable, disable and sleep |
 | `gpio-grove` | *gpio.GroveButton/Led/Relay/Buzzer | Grove wrappers drive the same pins |
 | `gpio-hcsr04` | *gpio.HCSR04Driver | trigger/echo pulse distance |
+| `gpio-hd44780` | *gpio.HD44780Driver | 4-bit character display buffer |
 | `gpio-led` | *gpio.LedDriver | On/Off/Toggle and brightness state |
+| `gpio-max7219` | *gpio.MAX7219Driver | 16-bit register stream and digit buffer |
 | `gpio-motor` | *gpio.MotorDriver | digital and analog speed control |
 | `gpio-pir` | *gpio.PIRMotionDriver | motion pin read |
 | `gpio-relay` | *gpio.RelayDriver | On/Off/Toggle, pin state and welded-contact fault |
 | `gpio-rgb-led` | *gpio.RgbLedDriver | SetRGB writes three PWM pins |
 | `gpio-servo` | *gpio.ServoDriver | Move writes the servo angle |
 | `gpio-stepper` | *gpio.StepperDriver | step and direction sequences |
+| `gpio-tm1638` | *gpio.TM1638Driver | shift-register display and LED buffer |
 | `hmc5883l` | *i2c.HMC5883LDriver | magnetometer registers |
 | `hmc6352` | *i2c.HMC6352Driver | heading command response |
 | `ina3221` | *i2c.INA3221Driver | bus/shunt voltage and current |
@@ -66,8 +70,6 @@ A model is listed as supported only when its driver-in-the-loop conformance case
 | Driver | Rationale |
 |---|---|
 | aio.ThermalZoneDriver | reads host sysfs thermal zones; host-dependent by design |
-| gpio.HD44780 | 4/8-bit parallel display timing requires a pin-level protocol decoder; I2C JHD1313M1 and SSD1306 displays are supported |
-| gpio.MAX7219/TM1638/AIP1640 | bit-banged shift-register timing requires a pin-level protocol decoder; the generic display buffer remains available |
 | i2c./spi.MFRC522 | RFID tag/anticollision state machine not modelled; generic register-map fallback available |
 | i2c.Adafruit1109 | two MCP23017 expanders plus keypad scanning not modelled; use the JHD1313M1 display model |
 | i2c.BlinkM | ASCII command protocol not modelled; generic register-map fallback available |

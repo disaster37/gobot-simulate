@@ -59,6 +59,7 @@ type Device struct {
 	Name         string            `json:"name,omitempty" yaml:"name,omitempty"`
 	Label        string            `json:"label,omitempty" yaml:"label,omitempty"`
 	Kind         state.DeviceKind  `json:"kind" yaml:"kind"`
+	DisplayModel string            `json:"displayModel,omitempty" yaml:"displayModel,omitempty"`
 	Pin          string            `json:"pin,omitempty" yaml:"pin,omitempty"`
 	Pins         []string          `json:"pins,omitempty" yaml:"pins,omitempty"`
 	Wiring       state.Wiring      `json:"wiring,omitempty" yaml:"wiring,omitempty"`
