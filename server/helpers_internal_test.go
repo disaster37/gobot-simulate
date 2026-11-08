@@ -94,6 +94,21 @@ func TestHealthAndAPIPath(t *testing.T) {
 	assert.False(t, isAPIPath("/apiary"))
 }
 
+func TestRequiresAuth(t *testing.T) {
+	for _, path := range []string{
+		"/api", "/api/v1/snapshot", "/api/v1/events", "/api/v1/health",
+		"/arest/dfp", "/arest/dfp/", "/arest/dfp/digital/3/1",
+		"/v1/devices/dfp", "/v1/devices/dfp/digitalread",
+	} {
+		assert.True(t, requiresAuth(path), "requiresAuth(%q) should be true", path)
+	}
+	for _, path := range []string{
+		"/", "/index.html", "/simulator", "/_nuxt/app.js", "/boards/dfp", "/apiary",
+	} {
+		assert.False(t, requiresAuth(path), "requiresAuth(%q) should be false", path)
+	}
+}
+
 func TestRecoveryMiddlewareHidesPanicValue(t *testing.T) {
 	s := &Server{}
 	h := hertz.New()

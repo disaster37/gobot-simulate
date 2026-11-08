@@ -36,6 +36,14 @@ func (b *I2CBus) chip(address int) (ChipModel, error) {
 	return nil, fmt.Errorf("%w: address 0x%02x on bus %d", ErrNAK, address, b.number)
 }
 
+// setChip registers a chip model under the bus lock so concurrent transfers
+// cannot race with runtime chip registration.
+func (b *I2CBus) setChip(address int, model ChipModel) {
+	b.mu.Lock()
+	b.devices[address] = model
+	b.mu.Unlock()
+}
+
 func (b *I2CBus) checkFault(address int) error {
 	target := fmt.Sprintf("i2c-%d", b.number)
 	if b.manager.busFault(target, state.FaultBusTimeout) {

@@ -78,6 +78,15 @@ func (p *SerialPort) Write(b []byte) (int, error) {
 }
 
 func (p *SerialPort) appendLocked(data []byte) {
+	if len(data) == 0 {
+		return
+	}
+	if len(data) >= p.max {
+		// A single write larger than the whole buffer would otherwise slice
+		// p.buf past its bounds. Keep only the most recent max bytes.
+		p.buf = append(p.buf[:0], data[len(data)-p.max:]...)
+		return
+	}
 	if len(p.buf)+len(data) > p.max {
 		p.buf = p.buf[len(p.buf)+len(data)-p.max:]
 	}

@@ -173,6 +173,22 @@ func TestSerialRoundTripAndHandler(t *testing.T) {
 	require.ErrorIs(t, err, io.EOF)
 }
 
+func TestSerialOversizeWriteDoesNotPanic(t *testing.T) {
+	port := newSerialPort("tty")
+	big := make([]byte, defaultSerialBuffer+1024)
+	for i := range big {
+		big[i] = byte('a' + i%26)
+	}
+	n, err := port.SerialWrite(big)
+	require.NoError(t, err)
+	assert.Equal(t, len(big), n)
+	assert.LessOrEqual(t, len(port.Buffered()), defaultSerialBuffer)
+
+	// The retained bytes are the tail of the write, matching a bounded FIFO.
+	buffered := port.Buffered()
+	assert.Equal(t, big[len(big)-len(buffered):], buffered)
+}
+
 func TestBLEDeviceCharacteristicsAndNotifications(t *testing.T) {
 	device := newBLEDevice()
 	assert.Equal(t, "simulator", device.Address())

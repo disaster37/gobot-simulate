@@ -16,6 +16,10 @@ import (
 	"github.com/disaster37/gobot-simulate/internal/trace"
 )
 
+// maxCommandValue bounds a device command's numeric argument. It must cover
+// the packed RGB triplet (0xFFFFFF) used by the setrgb action.
+const maxCommandValue = 0xFFFFFF
+
 func (s *Server) handleCommand(ctx context.Context, c *app.RequestContext) {
 	boardID := c.Param("board")
 	deviceID := c.Param("device")
@@ -35,7 +39,9 @@ func (s *Server) handleCommand(ctx context.Context, c *app.RequestContext) {
 		writeBackendError(c, boardID, state.ErrInvalidValue)
 		return
 	}
-	if req.Value != nil && (*req.Value < -1000000 || *req.Value > 1000000) {
+	// The RGB LED command packs three 8-bit channels into a single integer
+	// (red<<16 | green<<8 | blue), so the upper bound must cover 0xFFFFFF.
+	if req.Value != nil && (*req.Value < -maxCommandValue || *req.Value > maxCommandValue) {
 		writeBackendError(c, boardID, state.ErrInvalidValue)
 		return
 	}

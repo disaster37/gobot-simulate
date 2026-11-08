@@ -205,6 +205,17 @@ func TestAuthMiddleware(t *testing.T) {
 
 	authorized := doRequest(sim, http.MethodGet, "/api/v1/snapshot", nil, ut.Header{Key: "Authorization", Value: "Bearer secret"})
 	assert.Equal(t, http.StatusOK, authorized.Code)
+
+	// The aREST and Particle emulation surfaces are equally privileged and must
+	// not bypass auth just because they live outside /api/.
+	arestUnauthorized := doRequest(sim, http.MethodGet, "/arest/dfp/", nil)
+	assert.Equal(t, http.StatusUnauthorized, arestUnauthorized.Code)
+
+	particleUnauthorized := doRequest(sim, http.MethodGet, "/v1/devices/dfp", nil)
+	assert.Equal(t, http.StatusUnauthorized, particleUnauthorized.Code)
+
+	arestAuthorized := doRequest(sim, http.MethodGet, "/arest/dfp/", nil, ut.Header{Key: "Authorization", Value: "Bearer secret"})
+	assert.NotEqual(t, http.StatusUnauthorized, arestAuthorized.Code)
 }
 
 func TestCORSAllowlist(t *testing.T) {

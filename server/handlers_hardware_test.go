@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -202,6 +203,31 @@ func TestDeviceFaultAndCommandEndpoints(t *testing.T) {
 	// No attached driver for the LED means commands are rejected.
 	noDriver := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/devices/led/command", []byte(`{"action":"on"}`))
 	assert.Equal(t, http.StatusUnprocessableEntity, noDriver.Code)
+}
+
+func TestRGBCommandAcceptsPackedValue(t *testing.T) {
+	sim := newServerSim(t)
+	adaptor := sim.Adaptor("dfp")
+	_, err := sim.RegisterDevice("dfp", simulate.DeviceSpec{
+		ID: "rgb", Kind: simulate.DeviceKindRGBLED, Pins: []string{"1", "2", "4"},
+	})
+	require.NoError(t, err)
+	driver := gpio.NewRgbLedDriver(adaptor, "1", "2", "4")
+	require.NoError(t, driver.Start())
+	driver.SetName("rgb")
+	require.NoError(t, sim.AttachDevices("dfp", driver))
+
+	// red=200, green=20, blue=30 packs above the former 1,000,000 bound.
+	packed := (200 << 16) | (20 << 8) | 30
+	response := doRequest(sim, http.MethodPost, "/api/v1/boards/dfp/devices/rgb/command",
+		[]byte(fmt.Sprintf(`{"action":"setrgb","value":%d}`, packed)))
+	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
+
+	for pin, want := range map[string]byte{"1": 200, "2": 20, "4": 30} {
+		pinState, err := sim.Pin("dfp", pin)
+		require.NoError(t, err)
+		assert.Equal(t, want, pinState.ByteValue, "pin %s", pin)
+	}
 }
 
 func TestWiringWarningsExposed(t *testing.T) {

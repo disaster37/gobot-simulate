@@ -278,7 +278,7 @@ func (m *Manager) DefaultI2CBus() int {
 
 // AddI2CChip attaches a chip model at an address.
 func (m *Manager) AddI2CChip(busNr, address int, model ChipModel) {
-	m.I2C(busNr).devices[address] = model
+	m.I2C(busNr).setChip(address, model)
 }
 
 // AddSPIChip attaches a SPI chip model for a bus/chip pair.

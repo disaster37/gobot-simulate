@@ -122,13 +122,8 @@ func (s *Server) corsMiddleware(ctx context.Context, c *app.RequestContext) {
 }
 
 func (s *Server) authMiddleware(ctx context.Context, c *app.RequestContext) {
-	if s.cfg.AuthToken == "" || isHealthPath(string(c.Path())) || string(c.Method()) == http.MethodOptions {
-		c.Next(ctx)
-		return
-	}
-
 	path := string(c.Path())
-	if !strings.HasPrefix(path, "/api/") && path != "/api" {
+	if s.cfg.AuthToken == "" || isHealthPath(path) || string(c.Method()) == http.MethodOptions || !requiresAuth(path) {
 		c.Next(ctx)
 		return
 	}
@@ -195,4 +190,16 @@ func constantTimeEqual(a, b string) bool {
 
 func isHealthPath(path string) bool {
 	return path == "/api/v1/health"
+}
+
+// requiresAuth reports whether path is a state-exposing or mutating surface
+// that must be gated when an auth token is configured. Static UI assets and
+// SPA routes (served via NoRoute) remain public so the browser can load the
+// app before it supplies a token.
+func requiresAuth(path string) bool {
+	if path == "/api" || strings.HasPrefix(path, "/api/") {
+		return true
+	}
+	// aREST and Particle protocol emulation surfaces are equally privileged.
+	return strings.HasPrefix(path, "/arest/") || strings.HasPrefix(path, "/v1/")
 }

@@ -379,7 +379,7 @@ func (e *Engine) HandleEvent(evt state.Event) {
 		if rule.Board == "" {
 			rule.Board = evt.BoardID
 		}
-		e.execute(context.Background(), rule, 0)
+		e.execute(e.ctx, rule, 0)
 	}
 }
 
@@ -409,7 +409,7 @@ func (e *Engine) HandleTrace(rec trace.Record) {
 		if rule.Board == "" {
 			rule.Board = rec.BoardID
 		}
-		e.execute(context.Background(), rule, 0)
+		e.execute(e.ctx, rule, 0)
 	}
 }
 

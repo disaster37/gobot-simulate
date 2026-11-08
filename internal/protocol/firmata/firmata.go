@@ -143,71 +143,62 @@ func (r *Responder) poll(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			r.mu.Lock()
-			ports := append([]bool(nil), r.digitalReport...)
-			analog := append([]bool(nil), r.analogReport...)
-			r.mu.Unlock()
-			for port, enabled := range ports {
-				if !enabled {
-					continue
-				}
-				value := 0
-				for bit := 0; bit < 8; bit++ {
-					pin := port*8 + bit
-					if pin >= r.pins {
-						break
-					}
-					level := r.readPin(pin)
-					if level != 0 {
-						value |= 1 << bit
-					}
-				}
-				if last := r.lastPort[port]; last == value && r.portReported(port) {
-					continue
-				}
-				r.setPortReported(port, value)
-				_ = r.write([]byte{byte(digitalMessage | port), byte(value & 0x7F), byte((value >> 7) & 0x7F)}) //nolint:gosec // intentional width conversion
-			}
-			for channel, enabled := range analog {
-				if !enabled || channel < 14 || channel >= 14+r.analog {
-					continue
-				}
-				value, err := r.backend.FirmataAnalogRead(channel - 14)
-				if err != nil {
-					continue
-				}
-				if r.lastAnalog[channel] == value && r.analogReported(channel) {
-					continue
-				}
-				r.setAnalogReported(channel, value)
-				_ = r.write([]byte{byte(analogMessage | (channel - 14)), byte(value & 0x7F), byte((value >> 7) & 0x7F)}) //nolint:gosec // intentional width conversion
-			}
+			r.pollOnce()
 		}
 	}
 }
 
-func (r *Responder) portReported(port int) bool {
+// pollOnce snapshots report configuration and last values under the mutex and
+// emits changed ports. Reading lastPort/lastAnalog only under the lock keeps
+// poll free of data races with the frame handler.
+func (r *Responder) pollOnce() {
 	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.lastPort[port] != -1
-}
-
-func (r *Responder) setPortReported(port, value int) {
-	r.mu.Lock()
-	r.lastPort[port] = value
+	ports := append([]bool(nil), r.digitalReport...)
+	analog := append([]bool(nil), r.analogReport...)
+	lastPort := append([]int(nil), r.lastPort...)
+	lastAnalog := append([]int(nil), r.lastAnalog...)
 	r.mu.Unlock()
-}
 
-func (r *Responder) analogReported(channel int) bool {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.lastAnalog[channel] != -1
-}
-
-func (r *Responder) setAnalogReported(channel, value int) {
-	r.mu.Lock()
-	r.lastAnalog[channel] = value
-	r.mu.Unlock()
+	for port, enabled := range ports {
+		if !enabled {
+			continue
+		}
+		value := 0
+		for bit := 0; bit < 8; bit++ {
+			pin := port*8 + bit
+			if pin >= r.pins {
+				break
+			}
+			if r.readPin(pin) != 0 {
+				value |= 1 << bit
+			}
+		}
+		if lastPort[port] == value {
+			continue
+		}
+		lastPort[port] = value
+		r.mu.Lock()
+		r.lastPort[port] = value
+		r.mu.Unlock()
+		_ = r.write([]byte{byte(digitalMessage | port), byte(value & 0x7F), byte((value >> 7) & 0x7F)}) //nolint:gosec // intentional width conversion
+	}
+	for channel, enabled := range analog {
+		if !enabled || channel < 14 || channel >= 14+r.analog {
+			continue
+		}
+		value, err := r.backend.FirmataAnalogRead(channel - 14)
+		if err != nil {
+			continue
+		}
+		if lastAnalog[channel] == value {
+			continue
+		}
+		lastAnalog[channel] = value
+		r.mu.Lock()
+		r.lastAnalog[channel] = value
+		r.mu.Unlock()
+		_ = r.write([]byte{byte(analogMessage | (channel - 14)), byte(value & 0x7F), byte((value >> 7) & 0x7F)}) //nolint:gosec // intentional width conversion
+	}
 }
 
 func (r *Responder) readPin(pin int) int {

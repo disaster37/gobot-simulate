@@ -338,6 +338,37 @@ func TestActionDelayAndRamp(t *testing.T) {
 
 func float64Ptr(v float64) *float64 { return &v }
 
+func TestStopCancelsEventTriggeredDelayedActions(t *testing.T) {
+	dispatch := &fakeDispatcher{}
+	clk := clock.NewMockClock(time.Unix(0, 0))
+	engine := newEngine(t, []Rule{{
+		ID:      "delayed",
+		Board:   "dfp",
+		Trigger: Trigger{Type: TriggerPinChanged, Pin: "3"},
+		Actions: []Action{{Type: ActionSetPin, Pin: "5", Value: 1, DelayMs: 100}},
+	}}, dispatch, clk)
+	engine.Start(context.Background())
+
+	handled := make(chan struct{})
+	go func() {
+		defer close(handled)
+		engine.HandleEvent(state.Event{Type: state.EventPinUpdated, Source: state.SourceHardwareCode, BoardID: "dfp", Pin: "3"})
+	}()
+
+	// Wait until the delayed action has registered its timer, then stop the
+	// engine before the timer fires.
+	require.Eventually(t, func() bool { return clk.Waiters() > 0 }, time.Second, time.Millisecond)
+	engine.Stop()
+	clk.Advance(100 * time.Millisecond)
+
+	select {
+	case <-handled:
+	case <-time.After(time.Second):
+		t.Fatal("HandleEvent did not return after Stop")
+	}
+	assert.Empty(t, dispatch.snapshot(), "Stop must cancel in-flight delayed actions")
+}
+
 func TestLoopGuardDropsExcessExecutions(t *testing.T) {
 	dispatch := &fakeDispatcher{}
 	clk := clock.NewMockClock(time.Unix(0, 0))
