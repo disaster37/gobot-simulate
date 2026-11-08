@@ -1,0 +1,22 @@
+{
+  "name": "@disaster37/gobot-simulate-ui",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Reusable Nuxt layer for the gobot-simulate hardware simulator UI",
+  "license": "MIT",
+  "files": [
+    "app",
+    "nuxt.config.ts"
+  ],
+  "exports": {
+    ".": "./nuxt.config.ts"
+  },
+  "peerDependencies": {
+    "nuxt": "^4.0.0",
+    "vue": "^3.5.0"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.0",
+    "@nuxt/ui": "^4.0.0"
+  }
+}

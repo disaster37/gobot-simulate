@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { SimulatorEvent, Snapshot } from '~/types/simulator'
+import type { SimulatorEvent, Snapshot, TraceRecord } from '../types/simulator'
 
 export type SSEStatus = 'connecting' | 'connected' | 'reconnecting' | 'offline'
 
@@ -20,6 +20,7 @@ export interface UseSSEOptions {
   getToken?: () => string
   onEvent: (event: SimulatorEvent) => void
   onSnapshot?: (snapshot: Snapshot) => void
+  onTrace?: (record: TraceRecord) => void
   fetchImpl?: typeof fetch
 }
 
@@ -156,6 +157,13 @@ export function useSSE(options: UseSSEOptions) {
       const snapshot = JSON.parse(raw) as Snapshot
       lastEventId.value = Math.max(lastEventId.value, snapshot.meta.currentSeq)
       options.onSnapshot?.(snapshot)
+      return
+    }
+    if (eventType === 'trace') {
+      if (!raw || !options.onTrace) {
+        return
+      }
+      options.onTrace(JSON.parse(raw) as TraceRecord)
       return
     }
     if (!raw) {

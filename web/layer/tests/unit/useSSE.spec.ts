@@ -212,3 +212,25 @@ describe('useSSE', () => {
     sse.stop()
   })
 })
+
+describe('useSSE trace events', () => {
+  it('dispatches trace frames separately from state events', async () => {
+    const onEvent = vi.fn()
+    const onTrace = vi.fn()
+    const fetchImpl = vi.fn(async () =>
+      sseResponse([
+        'id: 1\nevent: trace\ndata: {"seq":9,"kind":"pin-write","target":"3","value":1}\n\n',
+        `id: 2\nevent: pin.updated\ndata: ${JSON.stringify(makeEvent(2))}\n\n`,
+      ]),
+    )
+    const sse = useSSE({ onEvent, onTrace, fetchImpl })
+    sse.start()
+    await vi.waitFor(() => expect(onTrace).toHaveBeenCalledTimes(1))
+    expect(onTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ seq: 9, kind: 'pin-write', target: '3' }),
+    )
+    await vi.waitFor(() => expect(onEvent).toHaveBeenCalledTimes(1))
+    expect(sse.lastEventId.value).toBe(2)
+    sse.stop()
+  })
+})

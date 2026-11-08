@@ -1,13 +1,18 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
+  extends: ['./layer'],
   buildId: 'gobot-simulate',
   ssr: false,
-  modules: ['@nuxt/ui'],
-  css: ['~/assets/css/main.css'],
   icon: {
     provider: 'clientBundle',
     clientBundle: {
       scan: true,
+    },
+  },
+  runtimeConfig: {
+    public: {
+      simulatorApiBase: process.env.NUXT_PUBLIC_SIMULATOR_API_BASE || '/api/v1',
+      simulatorToken: process.env.NUXT_PUBLIC_SIMULATOR_TOKEN || '',
     },
   },
   nitro: {

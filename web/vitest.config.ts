@@ -1,18 +1,18 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-const appDir = fileURLToPath(new URL('./app', import.meta.url))
+const layerApp = fileURLToPath(new URL('./layer/app', import.meta.url))
 
 export default defineConfig({
   resolve: {
     alias: {
-      '~': appDir,
-      '@': appDir,
+      '~': layerApp,
+      '@': layerApp,
     },
   },
   test: {
     environment: 'node',
-    include: ['tests/unit/**/*.spec.ts'],
+    include: ['layer/tests/unit/**/*.spec.ts'],
     globals: true,
   },
 })

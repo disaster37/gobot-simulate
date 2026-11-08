@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import DeviceGroup from '~/components/DeviceGroup.vue'
-import FaultPanel from '~/components/FaultPanel.vue'
-import PinMatrix from '~/components/PinMatrix.vue'
-import { useSimulator } from '~/composables/useSimulator'
-import type { DeviceState } from '~/types/simulator'
+import { computed, onMounted } from 'vue'
+import ChipPanel from '../../../components/ChipPanel.vue'
+import DeviceGroup from '../../../components/DeviceGroup.vue'
+import FaultPanel from '../../../components/FaultPanel.vue'
+import PinMatrix from '../../../components/PinMatrix.vue'
+import { useSimulator } from '../../../composables/useSimulator'
+import type { DeviceGroup as Group, DeviceState } from '../../../types/simulator'
+
+definePageMeta({ layout: 'simulator' })
 
 const route = useRoute()
 const sim = useSimulator()
-const valueInputs = ref<Record<string, string>>({})
 
 const boardID = computed(() => String(route.params.id))
 const board = computed(
@@ -19,41 +20,29 @@ const board = computed(
     ) ?? null,
 )
 
-const devices = computed<DeviceState[]>(() =>
-  board.value
-    ? Object.values(board.value.devices).sort((a, b) => a.label.localeCompare(b.label))
-    : [],
-)
+const groups: Array<{ key: Group; title: string; icon: string }> = [
+  { key: 'inputs', title: 'Buttons, captors & PIR', icon: 'i-lucide-hand' },
+  { key: 'outputs', title: 'Relays, LEDs & buzzers', icon: 'i-lucide-toggle-right' },
+  { key: 'actuators', title: 'Motors, servos & PWM', icon: 'i-lucide-sliders-horizontal' },
+  { key: 'sensors', title: 'Sensors & ADC', icon: 'i-lucide-gauge' },
+  { key: 'displays', title: 'Displays', icon: 'i-lucide-monitor' },
+  { key: 'expanders', title: 'Expanders', icon: 'i-lucide-circuit-board' },
+  { key: 'extras', title: 'Extra values & functions', icon: 'i-lucide-braces' },
+]
 
-const contactDevices = computed(() =>
-  devices.value.filter((device) => ['relay', 'led'].includes(device.kind)),
-)
-const inputDevices = computed(() =>
-  devices.value.filter((device) => ['button', 'captor'].includes(device.kind)),
-)
-const analogDevices = computed(() =>
-  devices.value.filter((device) => ['sensor', 'analog', 'pwm', 'servo'].includes(device.kind)),
-)
-const extraDevices = computed(() =>
-  devices.value.filter((device) => ['value', 'function'].includes(device.kind)),
-)
+const devicesByGroup = computed(() => {
+  const map = new Map<string, DeviceState[]>()
+  for (const device of board.value ? Object.values(board.value.devices) : []) {
+    const key = device.group || 'extras'
+    map.set(key, [...(map.get(key) ?? []), device])
+  }
+  for (const list of map.values()) {
+    list.sort((a, b) => a.label.localeCompare(b.label))
+  }
+  return map
+})
 
 const faults = computed(() => (board.value?.fault.active ? 1 : 0))
-
-watch(
-  board,
-  (current) => {
-    if (!current) {
-      return
-    }
-    for (const [name, entry] of Object.entries(current.values)) {
-      if (valueInputs.value[name] === undefined) {
-        valueInputs.value[name] = JSON.stringify(entry.value)
-      }
-    }
-  },
-  { immediate: true },
-)
 
 onMounted(async () => {
   if (!sim.boards.value.length) {
@@ -64,30 +53,15 @@ onMounted(async () => {
     }
   }
 })
-
-async function applyValue(name: string, fallback: unknown) {
-  const raw = valueInputs.value[name]
-  let value: unknown = fallback
-  if (raw !== undefined && raw !== '') {
-    try {
-      value = JSON.parse(raw)
-    } catch {
-      value = raw
-    }
-  }
-  if (board.value) {
-    await sim.setValue(board.value.id, name, value)
-  }
-}
 </script>
 
 <template>
   <div class="space-y-6">
     <div v-if="board" class="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <UButton
-            to="/"
+            to="/simulator"
             color="neutral"
             variant="ghost"
             size="xs"
@@ -101,12 +75,38 @@ async function applyValue(name: string, fallback: unknown) {
           <UBadge v-if="faults" color="error" variant="subtle">fault</UBadge>
         </div>
         <p class="text-sm text-muted">
-          {{ board.id }} · {{ board.platform || 'simulated' }} · {{ board.connected ? 'connected' : 'disconnected' }}
+          {{ board.id }} · {{ board.platform || 'simulated' }} ·
+          {{ board.connected ? 'connected' : 'disconnected' }}
         </p>
       </div>
-      <div class="text-right text-xs text-muted">
-        <div>reconnects {{ board.reconnectCount }}</div>
-        <div>updated {{ new Date(board.updatedAt).toLocaleTimeString() }}</div>
+      <div class="flex flex-wrap items-center gap-2">
+        <UButton
+          size="sm"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-activity"
+          :to="`/simulator/boards/${board.id}/timeline`"
+        >
+          Timeline
+        </UButton>
+        <UButton
+          size="sm"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-network"
+          :to="`/simulator/boards/${board.id}/topology`"
+        >
+          Topology
+        </UButton>
+        <UButton
+          size="sm"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-workflow"
+          :to="`/simulator/boards/${board.id}/scenarios`"
+        >
+          Scenarios
+        </UButton>
       </div>
     </div>
 
@@ -122,42 +122,15 @@ async function applyValue(name: string, fallback: unknown) {
       <FaultPanel :board="board" />
 
       <DeviceGroup
-        title="Buttons & captors"
-        icon="i-lucide-hand"
+        v-for="group in groups"
+        :key="group.key"
+        :title="group.title"
+        :icon="group.icon"
         :board-id="board.id"
-        :devices="inputDevices"
-      />
-      <DeviceGroup
-        title="Relays & LEDs"
-        icon="i-lucide-toggle-right"
-        :board-id="board.id"
-        :devices="contactDevices"
-      />
-      <DeviceGroup
-        title="Analog, PWM & servos"
-        icon="i-lucide-sliders-horizontal"
-        :board-id="board.id"
-        :devices="analogDevices"
-      />
-      <DeviceGroup
-        title="Extra values & functions"
-        icon="i-lucide-braces"
-        :board-id="board.id"
-        :devices="extraDevices"
+        :devices="devicesByGroup.get(group.key) ?? []"
       />
 
-      <UCard v-if="Object.keys(board.values).length">
-        <template #header>
-          <h2 class="font-semibold">Raw aREST values</h2>
-        </template>
-        <div class="grid gap-3 md:grid-cols-2">
-          <div v-for="(entry, name) in board.values" :key="name" class="flex items-center gap-2">
-            <UInput v-model="valueInputs[name]" :placeholder="JSON.stringify(entry.value)" class="flex-1" />
-            <UButton size="sm" @click="applyValue(name, entry.value)">Apply</UButton>
-          </div>
-        </div>
-      </UCard>
-
+      <ChipPanel :board-id="board.id" />
       <PinMatrix :board="board" />
     </template>
   </div>

@@ -1,0 +1,1 @@
+import{c as e}from"./WrJRAZM4.js";import{$ as t,O as n,P as r,ht as i}from"./DhkM5OSE.js";var a=r({__name:`index`,async setup(r){let a,o;return[a,o]=i(()=>e(`/simulator`,{replace:!0})),await a,o(),(e,r)=>(t(),n(`div`))}});export{a as default};

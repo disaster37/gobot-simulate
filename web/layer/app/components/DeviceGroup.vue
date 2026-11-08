@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { DeviceState } from '~/types/simulator'
-import DeviceControl from '~/components/DeviceControl.vue'
+import type { DeviceState } from '../types/simulator'
+import DeviceControl from '../components/DeviceControl.vue'
 
 defineProps<{
   title: string

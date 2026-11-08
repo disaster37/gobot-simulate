@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import BoardCard from '~/components/BoardCard.vue'
-import EventFeed from '~/components/EventFeed.vue'
-import { useSimulator } from '~/composables/useSimulator'
+import BoardCard from '../../components/BoardCard.vue'
+import EventFeed from '../../components/EventFeed.vue'
+import { useSimulator } from '../../composables/useSimulator'
 
 const sim = useSimulator()
 

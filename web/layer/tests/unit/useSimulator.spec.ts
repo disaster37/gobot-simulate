@@ -9,13 +9,25 @@ function makeDevice(overrides: Partial<DeviceState> = {}): DeviceState {
     name: 'start',
     label: 'Start',
     kind: 'button',
+    group: 'inputs',
     driver: '*gpio.ButtonDriver',
     pins: ['11'],
     inverted: false,
     defaultState: 1,
     active: false,
     state: { pinValue: 1, defaultState: 1 },
-    capabilities: { readable: true, writable: true, pressable: true, toggleable: true, callable: false },
+    capabilities: {
+      readable: true,
+      writable: true,
+      pressable: true,
+      toggleable: true,
+      callable: false,
+      commandable: false,
+    },
+    wiring: { drive: 'active-high', contact: 'no', mechanism: 'momentary', pull: 'up' },
+    energised: false,
+    loadPowered: false,
+    expectedIdleLevel: 1,
     updatedAt: '2026-11-04T10:00:00Z',
     ...overrides,
   }
@@ -139,5 +151,73 @@ describe('useSimulator', () => {
     expect(result.active).toBe(true)
     expect(sim.boards.value[0].devices.button_start.active).toBe(true)
     expect(fetcher).toHaveBeenCalledOnce()
+  })
+})
+
+describe('useSimulator hardware commands', () => {
+  beforeEach(() => {
+    resetSimulatorState()
+  })
+
+  it('posts driver-aware commands and replaces the returned device', async () => {
+    const updated = makeDevice({ active: true })
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(updated), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    ) as unknown as typeof fetch
+    const sim = useSimulator({ fetcher })
+    sim.applySnapshot(makeSnapshot())
+
+    const result = await sim.commandDevice('dfp', 'button_start', 'toggle')
+    expect(result.active).toBe(true)
+    expect(fetcher).toHaveBeenCalledWith(
+      '/api/v1/boards/dfp/devices/button_start/command',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('posts device faults and clears them', async () => {
+    const updated = makeDevice({ faults: ['welded-contact'] })
+    const fetcher = vi.fn(async () =>
+      new Response(JSON.stringify(updated), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    ) as unknown as typeof fetch
+    const sim = useSimulator({ fetcher })
+    sim.applySnapshot(makeSnapshot())
+
+    const result = await sim.setDeviceFault('dfp', 'button_start', 'welded-contact')
+    expect(result.faults).toEqual(['welded-contact'])
+    await sim.clearDeviceFaults('dfp', 'button_start')
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+
+  it('parses trace and waveform payloads', async () => {
+    const response = {
+      records: [{ seq: 1, timestamp: '2026-11-04T10:00:00Z', kind: 'pin-write', target: '3' }],
+    }
+    const fetcher = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).includes('/waveform')) {
+        return new Response(
+          JSON.stringify({ series: [{ pin: '3', points: [], downsampled: false }] }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+      return new Response(JSON.stringify(response), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }) as unknown as typeof fetch
+    const sim = useSimulator({ fetcher })
+
+    const records = await sim.fetchTrace('dfp', { kinds: ['pin-write'], target: '3' })
+    expect(records).toHaveLength(1)
+    expect(sim.trace.value).toHaveLength(1)
+
+    const series = await sim.fetchWaveform('dfp', { pins: ['3'] })
+    expect(series[0].pin).toBe('3')
   })
 })

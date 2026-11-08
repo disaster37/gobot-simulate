@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { SSEStatus } from '~/composables/useSSE'
+import type { SSEStatus } from '../composables/useSSE'
 
 const props = defineProps<{
   status: SSEStatus

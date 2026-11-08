@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { SimulatorEvent } from '~/types/simulator'
+import type { SimulatorEvent } from '../types/simulator'
 
 const props = defineProps<{ events: SimulatorEvent[] }>()
 

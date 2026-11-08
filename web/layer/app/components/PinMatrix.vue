@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useSimulator } from '~/composables/useSimulator'
-import type { BoardState, PinMode, PinState } from '~/types/simulator'
+import { useSimulator } from '../composables/useSimulator'
+import type { BoardState, PinMode, PinState } from '../types/simulator'
 
 const props = defineProps<{ board: BoardState }>()
 const sim = useSimulator()

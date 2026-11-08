@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { BoardState } from '~/types/simulator'
+import type { BoardState } from '../types/simulator'
 
 const props = defineProps<{ board: BoardState }>()
 
@@ -47,7 +47,7 @@ const activeOutputs = computed(
     <template #footer>
       <div class="flex items-center justify-between">
         <span class="text-xs text-muted">reconnects: {{ board.reconnectCount }}</span>
-        <UButton :to="`/boards/${board.id}`" size="sm" trailing-icon="i-lucide-arrow-right">
+        <UButton :to="`/simulator/boards/${board.id}`" size="sm" trailing-icon="i-lucide-arrow-right">
           Open board
         </UButton>
       </div>

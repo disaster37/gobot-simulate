@@ -1,14 +1,20 @@
 import { computed, ref } from 'vue'
 import type {
   BoardState,
+  ChipEntry,
   DevicePatch,
   DeviceState,
+  DisplayChipValues,
   FunctionResult,
   PinPatch,
   PinState,
+  ScenarioRule,
   SimulatorEvent,
   Snapshot,
-} from '~/types/simulator'
+  TopologySpec,
+  TraceRecord,
+  WaveformSeries,
+} from '../types/simulator'
 
 export interface SimulatorOptions {
   baseURL?: string
@@ -16,18 +22,34 @@ export interface SimulatorOptions {
   token?: string
 }
 
+const defaultBaseURL = '/api/v1'
+
 const snapshot = ref<Snapshot | null>(null)
 const lastSeq = ref(0)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const events = ref<SimulatorEvent[]>([])
+const trace = ref<TraceRecord[]>([])
 const authToken = ref('')
 
-let baseURL = '/api/v1'
+let baseURL = defaultBaseURL
 let fetcher: typeof fetch = (...args) => globalThis.fetch(...args)
 
 const boards = computed(() => snapshot.value?.boards ?? [])
 const meta = computed(() => snapshot.value?.meta ?? null)
+const version = computed(() => meta.value?.version ?? 'dev')
+
+function configureSimulator(options: SimulatorOptions): void {
+  if (options.baseURL) {
+    baseURL = options.baseURL
+  }
+  if (options.fetcher) {
+    fetcher = options.fetcher
+  }
+  if (options.token !== undefined) {
+    authToken.value = options.token
+  }
+}
 
 function resetSimulatorState(): void {
   snapshot.value = null
@@ -35,8 +57,10 @@ function resetSimulatorState(): void {
   loading.value = false
   error.value = null
   events.value = []
-  baseURL = '/api/v1'
+  trace.value = []
+  baseURL = defaultBaseURL
   fetcher = (...args) => globalThis.fetch(...args)
+  authToken.value = ''
 }
 
 function applySnapshot(next: Snapshot): void {
@@ -70,6 +94,10 @@ function replaceDevice(boardID: string, next: DeviceState): void {
   board.devices = { ...board.devices, [next.id]: next }
 }
 
+function appendTrace(record: TraceRecord): void {
+  trace.value = [...trace.value.slice(-499), record]
+}
+
 function applyEvent(event: SimulatorEvent): boolean {
   if (!event || typeof event.seq !== 'number' || event.seq <= lastSeq.value) {
     return false
@@ -80,6 +108,7 @@ function applyEvent(event: SimulatorEvent): boolean {
   const board = event.boardId ? findBoard(event.boardId) : undefined
   switch (event.type) {
     case 'board.updated':
+    case 'board.started':
       if (event.board) {
         replaceBoard(event.board)
       }
@@ -106,6 +135,21 @@ function applyEvent(event: SimulatorEvent): boolean {
         }
       }
       break
+    case 'function.called':
+      if (board && event.valueName) {
+        const fn = board.functions[event.valueName]
+        board.functions = {
+          ...board.functions,
+          [event.valueName]: {
+            name: event.valueName,
+            returnCode: Number(event.newValue ?? fn?.returnCode ?? 0),
+            lastParameters: String(event.oldValue ?? fn?.lastParameters ?? ''),
+            callCount: (fn?.callCount ?? 0) + 1,
+            lastCalledAt: event.timestamp,
+          },
+        }
+      }
+      break
     case 'fault.changed':
       if (board) {
         board.fault = event.fault ?? { active: false }
@@ -118,6 +162,19 @@ function applyEvent(event: SimulatorEvent): boolean {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await requestRaw(path, init)
+  if (response.status === 204) {
+    return undefined as T
+  }
+  return (await response.json()) as T
+}
+
+async function requestText(path: string, init: RequestInit = {}): Promise<string> {
+  const response = await requestRaw(path, init)
+  return response.text()
+}
+
+async function requestRaw(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
   if (init.body) {
@@ -133,10 +190,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       payload?.error?.message ?? `request failed with status ${response.status}`
     throw new Error(message)
   }
-  if (response.status === 204) {
-    return undefined as T
-  }
-  return (await response.json()) as T
+  return response
 }
 
 function clone<T>(value: T): T {
@@ -198,6 +252,20 @@ async function patchDevice(
   }
 }
 
+async function commandDevice(
+  boardID: string,
+  deviceID: string,
+  action: string,
+  value?: number,
+): Promise<DeviceState> {
+  const updated = await request<DeviceState>(
+    `/boards/${encodeURIComponent(boardID)}/devices/${encodeURIComponent(deviceID)}/command`,
+    { method: 'POST', body: JSON.stringify(value === undefined ? { action } : { action, value }) },
+  )
+  replaceDevice(boardID, updated)
+  return updated
+}
+
 async function pressDevice(
   boardID: string,
   deviceID: string,
@@ -215,6 +283,28 @@ async function releaseDevice(boardID: string, deviceID: string): Promise<DeviceS
   const updated = await request<DeviceState>(
     `/boards/${encodeURIComponent(boardID)}/devices/${encodeURIComponent(deviceID)}/release`,
     { method: 'POST', body: '{}' },
+  )
+  replaceDevice(boardID, updated)
+  return updated
+}
+
+async function setDeviceFault(
+  boardID: string,
+  deviceID: string,
+  fault: string,
+): Promise<DeviceState> {
+  const updated = await request<DeviceState>(
+    `/boards/${encodeURIComponent(boardID)}/devices/${encodeURIComponent(deviceID)}/fault`,
+    { method: 'POST', body: JSON.stringify({ fault }) },
+  )
+  replaceDevice(boardID, updated)
+  return updated
+}
+
+async function clearDeviceFaults(boardID: string, deviceID: string): Promise<DeviceState> {
+  const updated = await request<DeviceState>(
+    `/boards/${encodeURIComponent(boardID)}/devices/${encodeURIComponent(deviceID)}/fault`,
+    { method: 'DELETE' },
   )
   replaceDevice(boardID, updated)
   return updated
@@ -269,39 +359,176 @@ async function clearFault(boardID: string) {
   return request(`/boards/${encodeURIComponent(boardID)}/fault`, { method: 'DELETE' })
 }
 
+async function fetchTrace(
+  boardID: string,
+  options: { since?: number; kinds?: string[]; target?: string } = {},
+): Promise<TraceRecord[]> {
+  const params = new URLSearchParams()
+  if (options.since) {
+    params.set('since', String(options.since))
+  }
+  if (options.kinds?.length) {
+    params.set('kinds', options.kinds.join(','))
+  }
+  if (options.target) {
+    params.set('target', options.target)
+  }
+  const query = params.toString()
+  const response = await request<{ records: TraceRecord[] }>(
+    `/boards/${encodeURIComponent(boardID)}/trace${query ? `?${query}` : ''}`,
+  )
+  for (const record of response.records) {
+    if (!trace.value.some((entry) => entry.seq === record.seq)) {
+      appendTrace(record)
+    }
+  }
+  return response.records
+}
+
+async function fetchWaveform(
+  boardID: string,
+  options: { pins?: string[]; from?: string; to?: string; maxPoints?: number } = {},
+): Promise<WaveformSeries[]> {
+  const params = new URLSearchParams()
+  if (options.pins?.length) {
+    params.set('pins', options.pins.join(','))
+  }
+  if (options.from) {
+    params.set('from', options.from)
+  }
+  if (options.to) {
+    params.set('to', options.to)
+  }
+  if (options.maxPoints) {
+    params.set('maxPoints', String(options.maxPoints))
+  }
+  const query = params.toString()
+  const response = await request<{ series: WaveformSeries[] }>(
+    `/boards/${encodeURIComponent(boardID)}/waveform${query ? `?${query}` : ''}`,
+  )
+  return response.series
+}
+
+async function postStep(
+  boardID: string,
+  name: string,
+  status: string,
+  detail: Record<string, unknown> = {},
+) {
+  return request(`/boards/${encodeURIComponent(boardID)}/steps`, {
+    method: 'POST',
+    body: JSON.stringify({ name, status, detail }),
+  })
+}
+
+async function fetchTopology(): Promise<TopologySpec> {
+  return request<TopologySpec>('/topology')
+}
+
+async function fetchTopologySource(): Promise<string> {
+  return requestText('/topology/source')
+}
+
+async function fetchScenarios(): Promise<ScenarioRule[]> {
+  const response = await request<{ scenarios: ScenarioRule[] }>('/scenarios')
+  return response.scenarios
+}
+
+async function setScenarioEnabled(id: string, enabled: boolean): Promise<ScenarioRule> {
+  return request<ScenarioRule>(`/scenarios/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ enabled }),
+  })
+}
+
+async function triggerScenario(id: string): Promise<void> {
+  await request(`/scenarios/${encodeURIComponent(id)}/trigger`, { method: 'POST' })
+}
+
+async function fetchBuses(boardID: string): Promise<Array<Record<string, unknown>>> {
+  const response = await request<{ buses: Array<Record<string, unknown>> }>(
+    `/boards/${encodeURIComponent(boardID)}/buses`,
+  )
+  return response.buses
+}
+
+async function fetchChips(boardID: string): Promise<ChipEntry[]> {
+  const response = await request<{ chips: ChipEntry[] }>(
+    `/boards/${encodeURIComponent(boardID)}/chips`,
+  )
+  return response.chips
+}
+
+async function fetchChip(chipID: string): Promise<DisplayChipValues> {
+  return request<DisplayChipValues>(`/chips/${encodeURIComponent(chipID)}`)
+}
+
+async function patchChip(
+  chipID: string,
+  field: string,
+  value: unknown,
+): Promise<DisplayChipValues> {
+  return request<DisplayChipValues>(`/chips/${encodeURIComponent(chipID)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ field, value }),
+  })
+}
+
+async function rawChip(
+  chipID: string,
+  write: number[],
+  readLen: number,
+): Promise<{ data?: number[]; values?: Record<string, unknown> }> {
+  return request(`/chips/${encodeURIComponent(chipID)}/raw`, {
+    method: 'POST',
+    body: JSON.stringify({ write, readLen }),
+  })
+}
+
 export function useSimulator(options: SimulatorOptions = {}) {
-  if (options.baseURL) {
-    baseURL = options.baseURL
-  }
-  if (options.fetcher) {
-    fetcher = options.fetcher
-  }
-  if (options.token !== undefined) {
-    authToken.value = options.token
-  }
+  configureSimulator(options)
 
   return {
     snapshot,
     boards,
     meta,
+    version,
     loading,
     error,
     events,
+    trace,
     lastSeq,
     authToken,
     fetchSnapshot,
     fetchBoard,
     applySnapshot,
     applyEvent,
+    appendTrace,
     patchDevice,
+    commandDevice,
     pressDevice,
     releaseDevice,
+    setDeviceFault,
+    clearDeviceFaults,
     setPin,
     setValue,
     callFunction,
     setFault,
     clearFault,
+    fetchTrace,
+    fetchWaveform,
+    postStep,
+    fetchTopology,
+    fetchTopologySource,
+    fetchScenarios,
+    setScenarioEnabled,
+    triggerScenario,
+    fetchBuses,
+    fetchChips,
+    fetchChip,
+    patchChip,
+    rawChip,
   }
 }
 
-export { resetSimulatorState }
+export { configureSimulator, resetSimulatorState }
