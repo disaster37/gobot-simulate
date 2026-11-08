@@ -27,6 +27,7 @@ are frozen at the first semver tag.
 
 ## Schema references
 
+- HTTP API reference: [`docs/api.md`](api.md)
 - Topology and scenario schema: [`docs/topology.md`](topology.md)
 - Generated driver support matrix: [`docs/support-matrix.md`](support-matrix.md)
 - gobot compatibility: [`docs/compatibility.md`](compatibility.md)

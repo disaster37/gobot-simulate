@@ -212,6 +212,9 @@ func New(opts ...Option) *Simulator {
 	for _, opt := range opts {
 		opt(s)
 	}
+	if s.clk == nil {
+		s.clk = clock.RealClock{}
+	}
 	s.cfg = normalizeConfig(s.cfg)
 	s.startedAt = s.clk.Now()
 	s.store = state.NewStore(s.version, s.cfg.EventBuffer, s.clk)
@@ -260,6 +263,9 @@ func WithEventBuffer(size int) Option { return func(s *Simulator) { s.cfg.EventB
 
 // WithLatency sets the default simulated I/O latency.
 func WithLatency(d time.Duration) Option { return func(s *Simulator) { s.cfg.Latency = d } }
+
+// WithClock injects a deterministic clock (useful for scenario tests).
+func WithClock(clk clock.Clock) Option { return func(s *Simulator) { s.clk = clk } }
 
 // WithAuthToken enables bearer-token authentication.
 func WithAuthToken(token string) Option { return func(s *Simulator) { s.cfg.AuthToken = token } }

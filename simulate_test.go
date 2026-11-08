@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/disaster37/gobot-simulate/internal/clock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gobot.io/x/gobot/v2"
@@ -439,4 +440,26 @@ func TestSimulatorLifecycleAndOptions(t *testing.T) {
 	standalone := NewAdaptor(WithAdaptorID("standalone"), WithAdaptorName("standalone"))
 	assert.Equal(t, "standalone", standalone.BoardID())
 	assert.Equal(t, "standalone", standalone.Name())
+}
+
+func TestEmbeddedBootstrapAndARESTBaseURL(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.Addr = "127.0.0.1"
+	cfg.Port = 0
+	cfg.UIEnabled = false
+	sim, err := Embedded(cfg)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = sim.Close() })
+	require.NotEmpty(t, sim.URL())
+	assert.Equal(t, sim.URL()+"/arest/test", sim.ARESTBaseURL("test"))
+	sim.Adaptor("test")
+	assert.Equal(t, sim.URL()+"/arest/test", sim.ARESTBaseURL("test"))
+}
+
+func TestWithClockDrivesUptime(t *testing.T) {
+	clk := clock.NewMockClock(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+	sim := New(WithClock(clk))
+	assert.Equal(t, time.Duration(0), sim.Uptime())
+	clk.Advance(3 * time.Second)
+	assert.Equal(t, 3*time.Second, sim.Uptime())
 }

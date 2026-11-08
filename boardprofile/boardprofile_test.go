@@ -68,4 +68,9 @@ func TestRaspiProfileBuses(t *testing.T) {
 	assert.Equal(t, 0, profile.DefaultSPIBus)
 	assert.Contains(t, profile.I2CBuses, Bus{Transport: "i2c", Number: 0})
 	assert.Contains(t, profile.I2CBuses, Bus{Transport: "i2c", Number: 1})
+	for _, pin := range profile.DigitalPins {
+		if pin.ID == "3" {
+			assert.Contains(t, pin.Label, "GPIO2")
+		}
+	}
 }

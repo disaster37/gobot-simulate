@@ -44,6 +44,7 @@ func Profiles() []Profile {
 		out[i].PWMPins = append([]Pin(nil), out[i].PWMPins...)
 		out[i].I2CBuses = append([]Bus(nil), out[i].I2CBuses...)
 		out[i].SPIBuses = append([]Bus(nil), out[i].SPIBuses...)
+		applyOverlay(&out[i])
 	}
 	return out
 }
@@ -53,6 +54,7 @@ func ProfileByID(id string) (Profile, bool) {
 	needle := strings.ToLower(strings.TrimSpace(id))
 	for _, profile := range generatedProfiles {
 		if strings.ToLower(profile.ID) == needle || strings.ToLower(profile.Platform) == needle {
+			applyOverlay(&profile)
 			return profile, true
 		}
 	}
